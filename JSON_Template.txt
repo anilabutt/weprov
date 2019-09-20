@@ -1,0 +1,64 @@
+{
+  "workflowId": "abc",
+  "userId": "123",
+  "time":"10:00:00",
+  "programs": [
+    {
+      "programId":"prog_abc",
+      "modelId":"agrimodel",
+      "inPorts": [
+        {
+          "portId":"inprt1",
+          "params":[
+            {
+              "paramId":"firstparam",
+              "paramValue":"value of first param"
+            },
+            {
+              "paramId":"secondparam",
+              "paramValue":"value of second param"
+            }
+            ]
+        },
+                {
+          "portId":"inport2",
+          "channel":"/user/data/file.txt",
+        }
+        ],
+      "outPorts":[
+        {
+          "portId":"outport1",
+          "channel":"/user/outdate/file2.txt"
+        }
+        ]
+    },
+    {
+      "programId":"prog2",
+      "modelId":"carbonmodel",
+      "inPorts": [
+        {
+          "portId":"inport77",
+          "channel":"/user/data/filer.txt",
+        }
+        ],
+      "outPorts":[
+        {
+          "portId":"outport2",
+          "channel":"/user/outdate/file24.txt"
+        }
+        ]
+    }
+    ],
+  "controllers": [
+    {
+      "source": {
+        "program":"prog_abc",
+        "port":"outport1"
+      },
+      "target": {
+        "program":"prog2",
+        "port":"inport77"
+      }
+    }
+    ]
+}
