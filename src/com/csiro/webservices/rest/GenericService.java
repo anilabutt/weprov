@@ -59,6 +59,10 @@ public abstract class GenericService extends LoggerService {
 		return "" + tripleCount;
 	}
 	
+	public boolean contains(Resource res) {
+		return store.exists(res);
+	}
+	
 	/**
 	 * get the input RDF from the default triple store
 	 * @param className: type of resourceId
@@ -114,39 +118,36 @@ public abstract class GenericService extends LoggerService {
 	
 	
 	public Model getWorkflowAsModel(String workflowId) {
-		String sparql ="PREFIX ifkm:<http://purl.org/ontology/ifkm#>" +
-        "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>"+
-      //  "PREFIX nust:<"+Configuration.NS_RES+uriSuffix+"/>" +
-        "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
-        "PREFIX owl:<http://www.w3.org/2002/07/owl#>"+
-        "PREFIX weprov:<"+Configuration.NS_WEPROV+">"+
-        "PREFIX wedata:<"+Configuration.NS_RES+"workflow/"+">"+
-        "PREFIX provone:<http://purl.dataone.org/provone/2015/01/15/ontology#>"+
-		"PREFIX prov:<http://www.w3.org/ns/prov#>"+
+		String sparql ="PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>"+
+		        "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
+		        "PREFIX owl:<http://www.w3.org/2002/07/owl#>"+
+		        "PREFIX weprov:<"+Configuration.NS_WEPROV+">"+
+		        "PREFIX wedata:<"+Configuration.NS_RES+"workflow/"+">"+
+		        "PREFIX provone:<http://purl.dataone.org/provone/2015/01/15/ontology#>"+
+				"PREFIX prov:<http://www.w3.org/ns/prov#>"+
 
-
-					        "Construct {"
-					        + "wedata:abc provone:hasSubProgram ?program. ?program rdfs:label ?programId."
-					        + "?program weprov:host ?model. ?model rdfs:label ?modelId."
-					        + "?program provone:hasInPort ?inport. ?inport rdfs:label ?inportId."
-					        	+ "?inport provone:connectsTo ?channelIn. ?channelIn rdfs:label ?channelInId. "
-					        	+ "?inport provone:hasDefaultParam ?param. ?param rdfs:label ?paramId. ?param prov:value ?paramValue."
-					        + "?program provone:hasOutPort ?outport. ?outport rdfs:label ?outportId. "
-					        	+ "?outport provone:connectsTo ?channelOut. ?channelOut rdfs:label ?channelOutId. "
-					        + "?program provone:controlledBy ?controller. ?controller rdfs:label ?controllerId. "
-					        + "}"
-					        + " WHERE {" 
-					        + "wedata:abc rdf:type provone:Workflow;" 
-					        + "provone:hasSubProgram ?program. ?program rdfs:label ?programId."
-					        + "?program weprov:host ?model. ?model rdfs:label ?modelId."
-					        + "?program provone:hasInPort ?inport. ?inport rdfs:label ?inportId."
-					        	+ "OPTIONAL {?inport provone:connectsTo ?channelIn. ?channelIn rdfs:label ?channelInId.} "
-					        	+ "OPTIONAL {?inport provone:hasDefaultParam ?param. ?param rdfs:label ?paramId."
-					        		+ "?param prov:value ?paramValue. }"
-					        + "?program provone:hasOutPort ?outport. ?outport rdfs:label ?outportId. "
-					        	+ "?outport provone:connectsTo ?channelOut. ?channelOut rdfs:label ?channelOutId. "
-					        + "OPTIONAL  {?program provone:controlledBy ?controller. ?controller rdfs:label ?controllerId. }"
-					        + "}";
+		        "Construct {"
+		        + "wedata:abc provone:hasSubProgram ?program. ?program rdfs:label ?programId."
+		        + "?program weprov:host ?model. ?model rdfs:label ?modelId."
+		        + "?program provone:hasInPort ?inport. ?inport rdfs:label ?inportId."
+		        	+ "?inport provone:connectsTo ?channelIn. ?channelIn rdfs:label ?channelInId. "
+		        	+ "?inport provone:hasDefaultParam ?param. ?param rdfs:label ?paramId. ?param prov:value ?paramValue."
+		        + "?program provone:hasOutPort ?outport. ?outport rdfs:label ?outportId. "
+		        	+ "?outport provone:connectsTo ?channelOut. ?channelOut rdfs:label ?channelOutId. "
+		        + "?program provone:controlledBy ?controller. ?controller rdfs:label ?controllerId. "
+		        + "}"
+		        + " WHERE {" 
+		        + "wedata:abc rdf:type provone:Workflow;" 
+		        + "provone:hasSubProgram ?program. ?program rdfs:label ?programId."
+		        + "?program weprov:host ?model. ?model rdfs:label ?modelId."
+		        + "?program  provone:hasInPort	 ?inport. ?inport rdfs:label ?inportId."
+		        	+ "OPTIONAL {?inport provone:connectsTo ?channelIn. ?channelIn rdfs:label ?channelInId.} "
+		        	+ "OPTIONAL {?inport provone:hasDefaultParam ?param. ?param rdfs:label ?paramId."
+		        		+ "?param prov:value ?paramValue. }"
+		        + "?program provone:hasOutPort ?outport. ?outport rdfs:label ?outportId. "
+		        	+ "?outport provone:connectsTo ?channelOut. ?channelOut rdfs:label ?channelOutId. "
+		        + "OPTIONAL  {?program provone:controlledBy ?controller. ?controller rdfs:label ?controllerId. }"
+		        + "}";
 		
         logger.info("Prepared SPARQL query successfully");
 		logger.info(sparql);

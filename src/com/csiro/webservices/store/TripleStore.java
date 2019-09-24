@@ -189,6 +189,19 @@ public class TripleStore {
 		}
 	}
 	
+	// does m contain r as s, p or o?
+	public boolean exists(Resource res) {
+		logger.info("Checking existance as a resource for " + res);
+		return baseModel.containsResource(res);
+	}
+	
+	public boolean existsAsSubject(Resource sub) {
+		// does m contain r as a subject?
+
+		logger.info("Checking existance as a subject for " + sub);
+		return baseModel.contains(sub, null, (RDFNode) null);
+	}
+	
 	/**
 	 * Executes given describe query
 	 *

@@ -14,7 +14,9 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.tdb.TDBFactory;
-
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.csiro.webservices.config.Configuration;
 import com.csiro.webservices.store.TripleStore;
@@ -23,12 +25,13 @@ import org.apache.jena.query.QuerySolution;
 
 public class SPARQLQueryTest {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws JSONException {
 				
 				Dataset baseDataSet= TDBFactory.createDataset(Configuration.getProperty(Configuration.STORE_PATH));
 				Model baseModel = baseDataSet.getDefaultModel(); 
 				
 			
+				JSONObject resultObj  =  new JSONObject();
 //				String sparql = "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>"+
 //						"PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
 //				        "PREFIX owl:<http://www.w3.org/2002/07/owl#>"+
@@ -110,66 +113,101 @@ public class SPARQLQueryTest {
 				Property connectsTo = results.getProperty("http://purl.dataone.org/provone/2015/01/15/ontology#connectsTo");
 				Property hasDefaultParam = results.getProperty("http://purl.dataone.org/provone/2015/01/15/ontology#hasDefaultParam");
 				Property host = results.getProperty(Configuration.NS_WEPROV+"host");
+				Property label = results.getProperty("http://www.w3.org/2000/01/rdf-schema#"+"label");
+				Property value = results.getProperty("http://www.w3.org/ns/prov#"+"value");
 				
+				
+				
+				//Get workflow Id
+				
+				Resource workflowId = (Resource) results.listSubjectsWithProperty(hasSubProgram).next();
+				resultObj.put("workflowId", workflowId.toString());
+				resultObj.put("userId", "");
+				resultObj.put("time", "");
+		
 				NodeIterator programIter = results.listObjectsOfProperty(hasSubProgram);
+				JSONArray programArr = new JSONArray();
+				
+				
 		        try {
 		            while (programIter.hasNext()) {
-		                RDFNode program = programIter.next();
-		               
-		                Resource modelId = (Resource) results.listObjectsOfProperty((Resource)program, host).next();
+		            	Resource program = (Resource) programIter.next();
+		                
+		                JSONObject _program = new JSONObject();
+		                _program.put("programId", results.listObjectsOfProperty(program, label).next());
+		                
+		                Resource modelId = (Resource) results.listObjectsOfProperty(program, host).next();
+		                _program.put("modelId", results.listObjectsOfProperty(modelId, label).next());
+		                
 		                
 		                System.out.println(program + "		" + modelId);
 		                
-		                NodeIterator inportsIterator = results.listObjectsOfProperty((Resource) program,  hasInPorts);
+		                NodeIterator inportsIterator = results.listObjectsOfProperty(program,  hasInPorts);
+		                JSONArray _inportsArr = new JSONArray();
 		                
 		                while(inportsIterator.hasNext()) {
 		                	Resource inport = (Resource)inportsIterator.next();
-		                	System.out.println("\t" +inport);
+		                	//System.out.println("\t" +inport);
+		                	JSONObject _inport = new JSONObject();
+		                	_inport.put("portId", results.listObjectsOfProperty(inport, label).next());
 		                	
 		                	NodeIterator channelIterator = results.listObjectsOfProperty((Resource) inport,  connectsTo);
 		                	if (channelIterator.hasNext()) {
 		                		while(channelIterator.hasNext()) {
 		                			Resource channel = (Resource)channelIterator.next();
 		                			System.out.println("\t\t" + channel);
+		                			_inport.put("channel", results.listObjectsOfProperty(channel, label).next());
 		                		}
 		                	} else {
 		                		NodeIterator paramIterator = results.listObjectsOfProperty((Resource) inport,  hasDefaultParam);
+		                		JSONArray params = new JSONArray();
 		                		while(paramIterator.hasNext()) {
 		                			Resource param = (Resource)paramIterator.next();
-		                			System.out.println("\t\t" + param);
+		                			JSONObject _param = new JSONObject();
+		                			String paramId = (results.listObjectsOfProperty(param, label).next()).toString();
+		                			String paramValue = (results.listObjectsOfProperty(param, value).next()).toString();
+		                			_param.put("paramId", paramId);
+		                			_param.put("paramValue", "paramValue");
+		                			params.put(_param);
 		                		}
+		                		_inport.put("params", params);
 		                	}
+		                	
+		                	_inportsArr.put(_inport);
 		                }
 		                
+		                _program.put("inPorts", _inportsArr);
+		                
 		                NodeIterator outportsIterator = results.listObjectsOfProperty((Resource) program,  hasOutPorts);
+		                JSONArray _outportsArr = new JSONArray();
 		                
 		                while(outportsIterator.hasNext()) {
 		                	Resource port = (Resource)outportsIterator.next();
+		                	JSONObject _outport = new JSONObject();
+		                	_outport.put("portId", results.listObjectsOfProperty(port, label).next());
+		                	
 		                	System.out.println("\t" +port);
 		                	
 		                	NodeIterator channelIterator = results.listObjectsOfProperty((Resource) port,  connectsTo);
 		                	while(channelIterator.hasNext()) {
 			                	Resource channel = (Resource)channelIterator.next();
 			                	System.out.println("\t\t" + channel);
-		                	}	
-		                }	                
+			                	_outport.put("channel", results.listObjectsOfProperty(channel, label).next());
+		                	}
+		                	
+		                	_outportsArr.put(_outport);
+		                }
+		                _program.put("outPorts", _outportsArr);
+		                programArr.put(_program);
 		            }
 		        } finally {
 		            if (programIter != null)
 		            	programIter.close();
 		        }
-				
-				
-//				  ArrayList<ProgramBean> programs= new ArrayList<ProgramBean>();
-//	              while (results.hasNext()){
-//		        	
-//	            	  QuerySolution qs = results.next();
-//	            	
-//	            	  String program = qs.getLiteral("?programId").getLexicalForm();
-//	            	  if(programs)
-//	            	  
-//	            	  System.out.println(outport);
-//	              }	
+		        resultObj.put("program", programArr);
+		        System.out.println(resultObj);
+		        System.out.println(workflowId.toString());
+
 	}
 	
 }

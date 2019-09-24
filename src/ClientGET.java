@@ -6,7 +6,7 @@ import java.net.URL;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.csiro.webservices.app.ResultSetJSON_to_InputJSON;
+import com.csiro.webservices.app.RDFModel_to_JSON;
 
 public class ClientGET {
     public static void main(String[] args) {
@@ -15,7 +15,7 @@ public class ClientGET {
             URL url = new URL("http://localhost:8080/weprov/workflow/abc");//your url i.e fetch data from .
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
-            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Content-Type", "rdf/xml");
             
             if (conn.getResponseCode() != 200) {
                 throw new RuntimeException("Failed : HTTP Error code : "
@@ -33,8 +33,7 @@ public class ClientGET {
             }
             
                 
-            ResultSetJSON_to_InputJSON formatJSON = new ResultSetJSON_to_InputJSON();
-            formatJSON.generateRDF(output);
+           System.out.println(output);
             
             
             conn.disconnect();

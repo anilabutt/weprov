@@ -26,6 +26,7 @@ import org.apache.jena.rdf.model.Model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.csiro.webservices.app.RDFModel_to_JSON;
 import com.csiro.webservices.app.WorkflowCreation;
 import com.csiro.webservices.store.OntMediaType;
 
@@ -64,6 +65,8 @@ public class Workflow extends GenericService{
 			}
 			
 			WorkflowCreation RDFlogger =  new WorkflowCreation();
+			
+			
 			Model _model = RDFlogger.generateRDF(workflowBuilder.toString());
 			
 			logger.info(_model.size()+"");
@@ -81,11 +84,14 @@ public class Workflow extends GenericService{
 	 * @param courseId of person
 	 * @return Description of Course in specified serialization format
 	 * */
-	@GET @Path("/{workflowId}") @Produces("RDF/XML")
+	@GET @Path("/{workflowId}") @Produces(MediaType.APPLICATION_JSON)
 	public String getWorkflow(@PathParam("workflowId") String workflowId) {
 		try {
-			logger.info("Inside getWorkflow");
-			return getWorkflowAsModel(workflowId).toString();
+			Model _model = getWorkflowAsModel(workflowId);
+			
+			RDFModel_to_JSON rdfToJson = new RDFModel_to_JSON();
+			
+			return rdfToJson.tansformInputJSON(_model).toString();
 		} catch (Exception exp) {
 			return ""+exp;
 		}

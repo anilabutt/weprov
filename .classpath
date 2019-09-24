@@ -70,5 +70,9 @@
 	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/xercesImpl-2.11.0.jar"/>
 	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/xml-apis-1.4.01.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/gson-2.8.5.jar"/>
+	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/guava-28.1-jre.jar"/>
+	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/zjsonpatch-0.4.9.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
