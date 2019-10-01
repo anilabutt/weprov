@@ -45,6 +45,9 @@ public class TripleStore {
 	/** RDF model of the triple store */
 	private Model baseModel;
 	
+	/** RDF model of the triple store */
+	private Model evoModel;
+	
 	/** Inference model of the triple store */
 	private InfModel infModel;
 	
@@ -72,8 +75,11 @@ public class TripleStore {
 		
 		// Load TDB store
 		Dataset baseDataSet= TDBFactory.createDataset(Configuration.getProperty(Configuration.STORE_PATH));
-		baseModel = baseDataSet.getDefaultModel(); 
-
+		baseModel = baseDataSet.getDefaultModel();
+//		baseModel = baseDataSet.getNamedModel(Configuration.NS_RES);
+//
+//		evoModel = baseDataSet.getNamedModel(Configuration.NS_EVORES);
+		
 //		// Load schema+ontologies
 //		schemaModel = TDBFactory.createDataset().getDefaultModel();
 //		loadSchema();
@@ -124,6 +130,32 @@ public class TripleStore {
 			return 0;
 		}
 	}
+	
+	/**
+	 * Inserts the input model into triple store
+	 * 
+	 * @param model Input model to be inserted into this triple store
+	 * @return Number of triples inserted into this triple store 
+	 */
+//	public long insertEvolution(Model model) {
+//		try {
+//			long initialSize = evoModel.size();
+//			//infModel.register(larqBuilder);
+//			evoModel.add(model);
+//			evoModel.commit();
+//			//larqBuilder.closeWriter();
+//            //infModel.unregister(larqBuilder);
+//	        long newTriples = evoModel.size()-initialSize;
+//			logger.info("Added "+ newTriples + " triples into evo store ");
+//			return newTriples;
+//		} catch(Exception exp) {
+//			logger.severe("Can't add new triples into store because of " + exp);
+//			return 0;
+//		}
+//	}
+	
+	
+	
 	
 	/**
 	 * Inserts the input statement into triple store
@@ -197,7 +229,6 @@ public class TripleStore {
 	
 	public boolean existsAsSubject(Resource sub) {
 		// does m contain r as a subject?
-
 		logger.info("Checking existance as a subject for " + sub);
 		return baseModel.contains(sub, null, (RDFNode) null);
 	}

@@ -6,7 +6,7 @@ import java.net.URL;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.csiro.webservices.app.RDFModel_to_JSON;
+import notusing.RDFModel_to_JSON;
 
 public class ClientGET {
     public static void main(String[] args) {

@@ -26,9 +26,12 @@ import org.apache.jena.rdf.model.Model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.csiro.webservices.app.RDFModel_to_JSON;
-import com.csiro.webservices.app.WorkflowCreation;
+import com.csiro.webservices.evolution.listener.EvolutionListener;
+import com.csiro.webservices.logic.ProvenanceLogger;
+import com.csiro.webservices.logic.CreationProvenance;
 import com.csiro.webservices.store.OntMediaType;
+
+import notusing.RDFModel_to_JSON;
 
 
 /**
@@ -38,7 +41,7 @@ import com.csiro.webservices.store.OntMediaType;
  */
 
 @Path("/workflow")
-public class Workflow extends GenericService{
+public class Workflow extends ProvenanceLogger{
 
 	/**
 	 * Default constructor to initializes logging by its parent.
@@ -56,27 +59,8 @@ public class Workflow extends GenericService{
 	 * */
 	@POST @Produces(MediaType.TEXT_HTML) @Consumes(MediaType.APPLICATION_JSON)
 	public String addWorkflow(InputStream incomingData) throws JSONException {
-		StringBuilder workflowBuilder = new StringBuilder();
-		try {
-			BufferedReader in = new BufferedReader(new InputStreamReader(incomingData));
-			String line = null;
-			while ((line = in.readLine()) != null) {
-				workflowBuilder.append(line);
-			}
-			
-			WorkflowCreation RDFlogger =  new WorkflowCreation();
-			
-			
-			Model _model = RDFlogger.generateRDF(workflowBuilder.toString());
-			
-			logger.info(_model.size()+"");
-			return add(_model);
-			
-		} catch (Exception e) {
-			logger.info("Error : - " + e);
-			return e+"";
-		}
-
+		
+		return addWorkflowProvenance(incomingData);
 	}
 
 	/**

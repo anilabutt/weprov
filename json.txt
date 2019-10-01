@@ -1,50 +1,9 @@
 {
-"time":"",
-"programs":[
-	{"inPorts":[
-		{"channel":"/user/data/filer.txt",
-		"portId":"inport77"}
-	],
-	"modelId":"carbonmodel",
-	"outPorts":[
-		{"channel":"/user/outdate/file24.txt",
-		"portId":"outport2"}
-	],
-	"programId":"test_program2"
-	},
-	{"inPorts":[
-		{"channel":"/user/data/file.txt",
-		"portId":"inport2"
-		},
-		{"portId":"inprt1",
-		"params":[
-			{"paramId":"firstparam",
-			"paramValue":"value of first param"},
-			{"paramId":"secondparam",
-			"paramValue":"value of second param"}
-			]
-		}
-	],
-	"modelId":"agrimodel",
-	"outPorts":[
-		{"channel":"/user/outdate/file2.txt",
-		"portId":"outport1"}
-		],
-	"programId":"test_program"
-	}
-],
-"userId":"",
-"workflowId":"http://weprov.csiro.au/workflow/abc",
-  "controllers": [
+  "workflowId": "abc",
+  "programs": [
     {
-      "source": {
-        "program":"test_program",
-        "port":"outport1"
-      },
-      "target": {
-        "program":"test_program2",
-        "port":"inport77"
-      }
+      "programId":"prog_abc",
     }
-    ]
+    ],
+
 }

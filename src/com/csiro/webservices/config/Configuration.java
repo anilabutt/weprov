@@ -24,12 +24,18 @@ public class Configuration {
 
 	/** Namespace for instance resources */
 	public static final String NS_RES = "http://weprov.csiro.au/";
+	
+	/** Namespace for instance resources */
+	public static final String NS_EVORES = "http://weprov.csiro.au/evolution/";
 
 	/** Prefix for WEPROV namespace */
 	public static final String PREFIX_WEPROV = "prefix.weprov";
 	
 	/** Prefix for instance resources */
 	public static final String PREFIX_DATA = "prefix.data";
+	
+	/** Prefix for instance resources */
+	public static final String PREFIX_EVODATA = "prefix.evodata";
 
 	/** Property key for full-text index path */
 	public static final String INDEX_PATH = "index.path";

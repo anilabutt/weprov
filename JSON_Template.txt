@@ -9,7 +9,6 @@
       "inPorts": [
         {
           "portId":"inprt1",
-          "channel":"",
           "params":[
             {
               "paramId":"firstparam",
@@ -21,10 +20,9 @@
             }
             ]
         },
-                {
+        {
           "portId":"inport2",
-          "channel":"/user/data/file.txt",
-          "params":[]
+          "channel":"/user/data/file.txt"
         }
         ],
       "outPorts":[

@@ -1,4 +1,4 @@
-package com.csiro.webservices.app;
+package notusing;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -33,7 +33,6 @@ import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import weprov.test.code.FlatMapUtil;
  
 public class ReadJSONExample
 {
