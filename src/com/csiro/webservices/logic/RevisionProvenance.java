@@ -26,7 +26,7 @@ public class RevisionProvenance{
 		
 	}
 	
-	public Model generateRDF(String entityType, String entityId, String actorId) throws JSONException {
+	public Model generateRDF(String entityId, String actorId, String version) throws JSONException {
 		// A temporary model to add rdf for this JSON
 		
 		Model _model = TDBFactory.createDataset().getDefaultModel();
@@ -34,38 +34,32 @@ public class RevisionProvenance{
 		//Get Classes and Properties of weprov model
 		
 		  Resource Agent = _model.getResource(prov + "Agent");
-		  Resource Activity = _model.getResource(prov+"Activity");
-		  
-		  Resource Revision = _model.getResource(prov+"Revision");
-		
+		  Resource Activity = _model.getResource(prov+"Activity");		  
+		  Resource Revision = _model.getResource(prov+"Revision");		
 		  Resource Modification = _model.getResource(weprov+"Modification");
 		
-		  int version= 0; 
-		  
+  
 		//Property Declaration
 
 			//General Properties
 			Property rdfTypeProperty = _model.getProperty(rdf+"type");
 				
-			// Associations
-			
-			
+			// Associations			
 			
 			Property wasAssociatedWith = _model.getProperty(prov+"wasAssociatedWith");
-			
+			Property hadGeneration = _model.getProperty(prov+"hadGeneration");
 			Property qualifiedRevision = _model.getProperty(prov+"qualifiedRevision");
-			
 			Property activity = _model.getProperty(prov+"activity");
 			
 			// Properties
 			Property atTime = _model.getProperty(prov+"atTime");
 			Property startedAtTime = _model.getProperty(prov+"startedAtTime");
 			Property foafname = _model.getProperty(foaf+"name");
-			
+			Property versionProperty = _model.getProperty(weprov+"version");
 			
 			//Add this detail to the model
 			
-			Resource entityInstance = _model.getResource(wedata+entityType+"/"+entityId);
+			Resource entityInstance = _model.getResource(entityId);
 		
 
 		
@@ -73,21 +67,21 @@ public class RevisionProvenance{
 		 * Revision evolution provenance here
 		 **/
 		
-		Resource _modification = _model.getResource(weprovdata +"modification/"+version+"/"+entityType+"/"+entityId);
+		Resource _modification = _model.getResource(weprovdata +"modification/"+version+"/"+entityId.replace(wedata, ""));
 		_modification.addProperty(rdfTypeProperty, Modification);
 		_modification.addProperty(rdfTypeProperty, Activity);
 		_modification.addProperty(startedAtTime, _model.createTypedLiteral(GregorianCalendar.getInstance()));
 		
-		Resource _revision = _model.getResource(weprovdata +"revision/"+version+"/"+entityType+"/"+entityId );
+		Resource _revision = _model.getResource(weprovdata +"revision/"+version+"/"+entityId.replace(wedata, "") );
 		_revision.addProperty(rdfTypeProperty, Revision);
 		_revision.addProperty(atTime, _model.createTypedLiteral(GregorianCalendar.getInstance()));
 		_revision.addProperty(activity, _modification);
 		
 		entityInstance.addProperty(qualifiedRevision, _revision);
-
+		entityInstance.addProperty(versionProperty, _model.createTypedLiteral(version));
 		
-		if ( actorId.equals("")) {
-			Resource agentInstance = _model.getResource(wedata+"agent/"+actorId);
+		if ( !actorId.equals("")) {
+			Resource agentInstance = _model.getResource(actorId);
 			agentInstance.addProperty(rdfTypeProperty, Agent);
 			agentInstance.addProperty(foafname, _model.createLiteral(actorId));	
 			_modification.addProperty(wasAssociatedWith, agentInstance);

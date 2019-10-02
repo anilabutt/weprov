@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -20,6 +21,7 @@ import com.csiro.webservices.rest.GenericService;
 public class ProvenanceLogger extends GenericService {
 
 	public static String wedata = Configuration.NS_RES;
+	public static String weprov = Configuration.NS_WEPROV;
 
 			
 	public ProvenanceLogger(String loggerName) {
@@ -45,60 +47,55 @@ public class ProvenanceLogger extends GenericService {
 			}
 			
 			JSONObject obj = new JSONObject(workflowBuilder.toString());
-			String _workflowId = obj.getString("workflowId");
 			
-			String _actorId = "";
+			String _workflowId = obj.getString("workflowId");
+			String workflowURIString = wedata+"workflow/"+_workflowId;
+			
+			String actorIdURIString = "";
+			
 			if (obj.has("userId")){
-				obj.getString("userId");
+				actorIdURIString = wedata+"agent/"+obj.getString("userId");
 			}
-//			logger.info(obj.toString());
+			
 			
 			
 			// Get workflow specification provenance 
 			
-			WorkflowSpecificationProvenance specProv = new WorkflowSpecificationProvenance();
+			SpecificationProvenance specProv = new SpecificationProvenance();
 			Model _cSpecModel = specProv.generateSpecificationRDF(workflowBuilder.toString()); 
 			
 			//Check if Workflow previous version exists
 			EvolutionListener listener = new EvolutionListener();
 			
-			boolean pVersion = listener.previousVersionExists(_workflowId);
+			boolean pVersion = listener.previousVersionExists(workflowURIString);
+			
+			
+			//If workflow does not exist in the store.
 			
 			if(!pVersion) {
-				add(_cSpecModel);
-				newWorkflowEvo("workflow", _workflowId, _actorId);
-			} else {
-				Model _pSpecModel = getWorkflowAsModel(_workflowId);
+			
+				// Add Workflow Specification Provenance
+				addWorkflow(_cSpecModel);
 				
-				listener.evolutionActivity(_cSpecModel, _pSpecModel);
-//				logger.info(" Previous Version from Store .... ");
-//				StmtIterator iter = _pSpecModel.listStatements();
-//				
-//				while (iter.hasNext()) {
-//					Statement tr = iter.next();
-//					System.out.println(tr.getSubject()  + "\t" + tr.getPredicate() + "\t" + tr.getObject());
-//				}
-//				
-//				Thread.sleep(2000);
-//				
-//				logger.info(" Current Version from Specs .... ");
-//				
-//				StmtIterator siter = _cSpecModel.listStatements();
-//				
-//				while (siter.hasNext()) {
-//					Statement tr = siter.next();
-//					System.out.println(tr.getSubject()  + "\t" + tr.getPredicate() + "\t" + tr.getObject());
-//				}
-//				
-//				Thread.sleep(2000);
-//				
-//				logger.info(" New Information in Current Version .... ");
-//				
-//				boolean currentVerDiffFound = listener.getDifference(_cSpecModel, _pSpecModel);
-//				
-//				logger.info(" Information Missing in Current Version .... ");
-//				
-//				boolean previousVerDiffFound = listener.getDifference(_pSpecModel, _cSpecModel);	
+				//Add workflow Evolution Provenance - Generation of Workflow: Workflow Creation Activity
+				Model provModel = listener.creationProv(workflowURIString, actorIdURIString);
+				addProvenance(provModel);
+			
+			} else {
+				
+				Model _pSpecModel = getWorkflowAsModel(_workflowId);
+				//Model _workflowDescription = getResource(workflowURIString, "provModel");
+				String version = getPropertyValue(_pSpecModel.getResource(workflowURIString), _pSpecModel.getProperty(weprov+"version"));
+				
+				logger.info("pervious version number : " + version);
+				
+				int currentVersion = Integer.parseInt(version) + 1;
+				
+				logger.info("pervious version number : " + currentVersion);
+				
+				Model model = listener.evolutionActivity(_cSpecModel, _pSpecModel, workflowURIString, actorIdURIString, currentVersion+"");
+
+
 			}
 			
 		} catch (Exception e) {
@@ -108,20 +105,5 @@ public class ProvenanceLogger extends GenericService {
 	}
 	
 	
-	private String newWorkflowEvo(String entityType, String entityId, String actorId) {
-		
-		logger.info("Adding a new workflow .... ");
-		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
-		CreationProvenance RDFCreator =  new CreationProvenance();
-		
-		try {
-			_model = RDFCreator.generateEvolProvenance(entityType, entityId, actorId);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
-		return add(_model);
-	}
 }

@@ -33,7 +33,7 @@ public class CreationProvenance{
 		
 	}
 	
-	public Model generateEvolProvenance(String entityType, String entityId, String actorId) throws JSONException {
+	public Model generateCreationRDF(String entityId, String actorId, String revisionId) throws JSONException {
 		// A temporary model to add rdf for this JSON
 		
 		Model _model = TDBFactory.createDataset().getDefaultModel();
@@ -70,39 +70,46 @@ public class CreationProvenance{
 			Property startedAtTime = _model.getProperty(prov+"startedAtTime");
 			Property endedAtTime = _model.getProperty(prov+"endedAtTime");
 			Property foafname = _model.getProperty(foaf+"name");
+			Property versionProperty = _model.getProperty(weprov+"version");
 			
 
 		
 		//Add this detail to the model
 		
-		Resource entityInstance = _model.getResource(wedata+entityType+"/"+entityId);
+		Resource entityInstance = _model.getResource(entityId);
 		
 		
 		/**
 		 * Generate evolution provenance here
 		 **/
 		
-		Resource _creation = _model.getResource(weprovdata +"creation/"+ entityType+"/"+entityId);
+		Resource _creation = _model.getResource(weprovdata +"creation/"+ entityId.replace(wedata, ""));
 		_creation.addProperty(rdfTypeProperty, Creation);
 		_creation.addProperty(rdfTypeProperty, Activity);
 		_creation.addProperty(startedAtTime, _model.createTypedLiteral(GregorianCalendar.getInstance()));
 		
-		Resource _generation = _model.getResource(weprovdata +"generation/"+ entityType+"/"+entityId );
+		Resource _generation = _model.getResource(weprovdata +"generation/"+ entityId.replace(wedata, "") );
 		_generation.addProperty(rdfTypeProperty, Generation);
 		_generation.addProperty(atTime, _model.createTypedLiteral(GregorianCalendar.getInstance()));
 		_generation.addProperty(activity, _creation);
 		
 		entityInstance.addProperty(wasGeneratedBy, _creation);
 		entityInstance.addProperty(qualifiedGeneration, _generation);
+		entityInstance.addProperty(versionProperty, _model.createTypedLiteral(1));
 				
-		if ( actorId.equals("")) {
-			Resource agentInstance = _model.getResource(wedata+"agent/"+actorId);
+		if ( !actorId.equals("")) {
+			Resource agentInstance = _model.getResource(actorId);
 			agentInstance.addProperty(rdfTypeProperty, Agent);
 			agentInstance.addProperty(foafname, _model.createLiteral(actorId));	
 			_creation.addProperty(wasAssociatedWith, agentInstance);
 		}
 		
-
+		if (!revisionId.equalsIgnoreCase("")) {
+			Resource _revision = _model.getResource(revisionId);
+			_revision.addProperty(hadGeneration, _generation);
+		}
+		
+		
 		return _model;
 		
 	}

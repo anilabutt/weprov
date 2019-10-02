@@ -10,7 +10,7 @@ import org.json.JSONObject;
 
 import com.csiro.webservices.config.Configuration;
 
-public class WorkflowSpecificationProvenance{
+public class SpecificationProvenance{
 
 	public static String weprov = Configuration.NS_WEPROV; //"http://www.csiro.au/digiscape/weprov#";
 	public static String wedata = Configuration.NS_RES;
@@ -21,7 +21,7 @@ public class WorkflowSpecificationProvenance{
 	public static String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
 	public static String foaf = "http://xmlns.com/foaf/0.1/";
 	
-	public WorkflowSpecificationProvenance() {
+	public SpecificationProvenance() {
 		
 	}
 	
@@ -59,6 +59,8 @@ public class WorkflowSpecificationProvenance{
 			Property hasDefaultParam = _model.getProperty(provone+"hasDefaultParam");
 			Property controlledBy = _model.getProperty(provone+"controlledBy");
 			Property controls = _model.getProperty(provone+"controls");
+			
+			
 			
 			Property agent = _model.getProperty(prov+"agent");
 			Property entity = _model.getProperty(prov+"entity");

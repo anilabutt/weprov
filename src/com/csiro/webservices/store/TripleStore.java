@@ -22,6 +22,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.tdb.TDBFactory;
 
 
@@ -46,7 +47,7 @@ public class TripleStore {
 	private Model baseModel;
 	
 	/** RDF model of the triple store */
-	private Model evoModel;
+	private Model provModel;
 	
 	/** Inference model of the triple store */
 	private InfModel infModel;
@@ -76,9 +77,9 @@ public class TripleStore {
 		// Load TDB store
 		Dataset baseDataSet= TDBFactory.createDataset(Configuration.getProperty(Configuration.STORE_PATH));
 		baseModel = baseDataSet.getDefaultModel();
-//		baseModel = baseDataSet.getNamedModel(Configuration.NS_RES);
-//
-//		evoModel = baseDataSet.getNamedModel(Configuration.NS_EVORES);
+		baseModel = baseDataSet.getNamedModel(Configuration.NS_RES);
+
+		provModel = baseDataSet.getNamedModel(Configuration.NS_EVORES);
 		
 //		// Load schema+ontologies
 //		schemaModel = TDBFactory.createDataset().getDefaultModel();
@@ -123,7 +124,7 @@ public class TripleStore {
 			//larqBuilder.closeWriter();
             //infModel.unregister(larqBuilder);
 	        long newTriples = baseModel.size()-initialSize;
-			logger.info("Added "+newTriples+" triples into store");
+			logger.info("Added "+ newTriples +" triples into store");
 			return newTriples;
 		} catch(Exception exp) {
 			logger.severe("Can't add new triples into store because of "+exp);
@@ -137,22 +138,22 @@ public class TripleStore {
 	 * @param model Input model to be inserted into this triple store
 	 * @return Number of triples inserted into this triple store 
 	 */
-//	public long insertEvolution(Model model) {
-//		try {
-//			long initialSize = evoModel.size();
-//			//infModel.register(larqBuilder);
-//			evoModel.add(model);
-//			evoModel.commit();
-//			//larqBuilder.closeWriter();
-//            //infModel.unregister(larqBuilder);
-//	        long newTriples = evoModel.size()-initialSize;
-//			logger.info("Added "+ newTriples + " triples into evo store ");
-//			return newTriples;
-//		} catch(Exception exp) {
-//			logger.severe("Can't add new triples into store because of " + exp);
-//			return 0;
-//		}
-//	}
+	public long insertProvRecord(Model model) {
+		try {
+			long initialSize = provModel.size();
+			//infModel.register(larqBuilder);
+			provModel.add(model);
+			provModel.commit();
+			//larqBuilder.closeWriter();
+            //infModel.unregister(larqBuilder);
+	        long newTriples = provModel.size()-initialSize;
+			logger.info("Added "+ newTriples + " triples into prov store ");
+			return newTriples;
+		} catch(Exception exp) {
+			logger.severe("Can't add new triples into store because of " + exp);
+			return 0;
+		}
+	}
 	
 	
 	
@@ -233,6 +234,13 @@ public class TripleStore {
 		return baseModel.contains(sub, null, (RDFNode) null);
 	}
 	
+	
+	public String getLiteral(Resource subject, Property property) {
+		Statement stmt = provModel.getRequiredProperty(subject, property);
+		String value = stmt.getLiteral().getLexicalForm();
+		return value;
+	}
+	
 	/**
 	 * Executes given describe query
 	 *
@@ -240,24 +248,24 @@ public class TripleStore {
 	 * @param lang Serialization language (see {@link OntMediaType})
 	 * @return The resulting model serialized in the specified language
 	 */
-	public String execDescribe(String query, String lang) {
-		QueryExecution qexec = QueryExecutionFactory.create(query,Syntax.syntaxSPARQL_11,infModel);
-		logger.info("Query parsed successfully");
-		String str = ""; //FIXME not very elegant
-		try {
-			Model result = qexec.execDescribe();
-			logger.info("Describe query returned "+result.size()+" triples");
-			ByteArrayOutputStream byteout = new ByteArrayOutputStream();
-			result.write(byteout, lang);
-			logger.info("Model serialized successfully");
-			str = byteout.toString();
-		} catch (Exception exp) {
-			logger.info("Can't process describe query because of "+exp);
-		} finally {
-			qexec.close();
-		}
-		return str;
-	}
+//	public String execDescribe(String query, String lang) {
+//		QueryExecution qexec = QueryExecutionFactory.create(query,Syntax.syntaxSPARQL_11,infModel);
+//		logger.info("Query parsed successfully");
+//		String str = ""; //FIXME not very elegant
+//		try {
+//			Model result = qexec.execDescribe();
+//			logger.info("Describe query returned "+result.size()+" triples");
+//			ByteArrayOutputStream byteout = new ByteArrayOutputStream();
+//			result.write(byteout, lang);
+//			logger.info("Model serialized successfully");
+//			str = byteout.toString();
+//		} catch (Exception exp) {
+//			logger.info("Can't process describe query because of "+exp);
+//		} finally {
+//			qexec.close();
+//		}
+//		return str;
+//	}
 	
 	/**
 	 * Executes given describe query
@@ -358,6 +366,15 @@ public class TripleStore {
 		return str;
 	}
 	
+	
+	public ResultSet execProvSelect(String query) {
+		QueryExecution qexec = QueryExecutionFactory.create(query,Syntax.syntaxSPARQL_11,provModel);
+		logger.info("Query parsed successfully");
+		ResultSet results = qexec.execSelect();
+		logger.info("Query returned "+results.getRowNumber()+" bindings");
+		return results;
+	}
+	
 	/**
 	 * Executes SELECT query and returns <code>ResultSet</code> object.
 	 * 
@@ -419,9 +436,14 @@ public class TripleStore {
 	 * @param query The SPARQL describe query
 	 * @return The resulting Model
 	 */
-	public Model execDescribe(String query) {
+	public Model execDescribe(String query, String queryModel) {
 		Model _model = TDBFactory.createDataset().getDefaultModel();
-		QueryExecution qexec = QueryExecutionFactory.create(query,Syntax.syntaxSPARQL_11,infModel);
+		QueryExecution qexec = null;
+		if (queryModel.equalsIgnoreCase("provModel") ){
+			qexec = QueryExecutionFactory.create(query,Syntax.syntaxSPARQL_11, provModel);
+		} else if (queryModel.equalsIgnoreCase("baseModel")) {
+			qexec = QueryExecutionFactory.create(query,Syntax.syntaxSPARQL_11, baseModel);
+		}
 		logger.info("Query parsed successfully");
 		try {
 			 _model = qexec.execDescribe();
@@ -432,4 +454,6 @@ public class TripleStore {
 		}
 		return _model;
 	}
+	
+
 }

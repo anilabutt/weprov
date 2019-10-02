@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -54,13 +55,22 @@ public abstract class GenericService extends LoggerService {
 		return "" + tripleCount;
 	}
 	
-	public String add(Model _model) {
+	public String addWorkflow(Model _model) {
 		long tripleCount = store.insert(_model);
 		return "" + tripleCount;
 	}
 	
+	public String addProvenance(Model _model) {
+		long tripleCount = store.insertProvRecord(_model);
+		return ""+ tripleCount;
+	}
+	
 	public boolean contains(Resource res) {
 		return store.exists(res);
+	}
+	
+	public String getPropertyValue(Resource res, Property prop) {
+		return store.getLiteral(res, prop);
 	}
 	
 	/**
@@ -69,9 +79,9 @@ public abstract class GenericService extends LoggerService {
 	 * @param resourceId: id of particular type.
 	 * @return Description of particular resourceId
 	 */
-	public String getResource(String className, String resourceId) {
-		String query = "DESCRIBE <http://ifkm.nust.edu.pk/"+className+"/" + resourceId + ">";
-		return store.execDescribe(query, OntMediaType.LANG_XML);
+	public Model getResource(String resourceId, String provModel) {
+		String query = "DESCRIBE <"+ resourceId + ">";
+		return store.execDescribe(query, provModel);
 	}
 	
 	/**
@@ -84,6 +94,7 @@ public abstract class GenericService extends LoggerService {
 	public String getResourceAsJSON(String resourceType, String resourceId) {
 		return getResourceAsJSON(resourceType, resourceType.toLowerCase(), resourceId);
 	}
+
 	
 	public String getWorkflowAsJSON(String workflowId) {
 		String sparql ="PREFIX ifkm:<http://purl.org/ontology/ifkm#>" +
@@ -252,22 +263,7 @@ public abstract class GenericService extends LoggerService {
 		store.remove(model);	
 		}
 	
-	/**
-	 * Retrieves list of typed resources/instances
-	 * 
-	 * @param type RDF type of the resources
-	 * @param lang Serialization format of the response
-	 * @return Description of all resources in specified serialization format
-	 */
-	public String getResourcesList(String type) {
-		String query = "PREFIX ifkm:<"+Configuration.NS_WEPROV+">" +
-			"PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"+
-			"DESCRIBE ?instance "+
-			"WHERE "+
-			"{?instance rdf:type ifkm:"+type+".}";
-  		return store.execDescribe(query, OntMediaType.LANG_XML);
-	}
-	
+
 	/**
 	 * Creates an RDF Model object from the given RDF dump
 	 * 

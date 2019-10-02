@@ -1,24 +1,22 @@
 package com.csiro.webservices.evolution.listener;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.Difference;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.tdb.TDBFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import com.csiro.webservices.config.Configuration;
 import com.csiro.webservices.logic.CreationProvenance;
+import com.csiro.webservices.logic.RevisionProvenance;
 import com.csiro.webservices.rest.GenericService;
 //import com.csiro.webservices.rest.Workflow;
 
 public class EvolutionListener extends GenericService {
 
 	public static String wedata = Configuration.NS_RES;
+	public static String prov = "http://www.w3.org/ns/prov#";
 	
 	/**
 	 * Default constructor to initializes logging by its parent.
@@ -27,54 +25,86 @@ public class EvolutionListener extends GenericService {
 		super(EvolutionListener.class.getName());
 	}
 		
-	public boolean previousVersionExists(String _workflowId) throws JSONException {
+	public boolean previousVersionExists(String workflowId) throws JSONException {
 		
 		Model _model = TDBFactory.createDataset().getDefaultModel();
 		
-		Resource workflowInstance = _model.getResource(wedata+"workflow/"+_workflowId);
+		Resource workflowInstance = _model.getResource(workflowId);
 	
 		return contains(workflowInstance);
 	}
 	
-	public void evolutionActivity(Model _current, Model _previous) throws JSONException {
+	public Model creationProv(String entityId, String actorId) {
+		
+		logger.info("Creating a new workflow / component .... ");
+		
+		Model _model = TDBFactory.createDataset().getDefaultModel();
+		CreationProvenance RDFCreator =  new CreationProvenance();
+		
+		try {
+			_model = RDFCreator.generateCreationRDF(entityId, actorId);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return _model;
+	}
+	
+	public Model revisionProv(String entityId, String actorId, String version) {
+		logger.info("Revising an existing workflow / component .... ");
+		
+		Model _model = TDBFactory.createDataset().getDefaultModel();
+		RevisionProvenance RDFCreator =  new RevisionProvenance();
+		
+		try {
+			_model = RDFCreator.generateRDF(entityId, actorId, version);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return _model;		
+	}
+	
+	public Model evolutionActivity(Model _current, Model _previous, String entity, String actor, String version) throws JSONException {
+		
+		Model model = ModelFactory.createDefaultModel();
 		
 		Difference newOldDiff = new Difference ( _current.getGraph(), _previous.getGraph());
 		Difference oldNewDiff = new Difference ( _previous.getGraph(), _current.getGraph());
 		
 		if(newOldDiff.isEmpty() && oldNewDiff.isEmpty()) {
-			System.out.println("New Version is SameAs old one ");
-		} else if(oldNewDiff.isEmpty() && !newOldDiff.isEmpty()) {
+			
+			logger.info("New Version is SameAs old one ");
+		
+		} else if(!newOldDiff.isEmpty() && oldNewDiff.isEmpty() ) {
+			
+			RevisionProvenance revision = new RevisionProvenance();
+			
+			Model revisionModel = revision.generateRDF(entity, actor, version );
+			
+			Resource entityId = model.getResource(entity);
+			Property qualifiedRevision = model.getProperty(prov+"qualifiedRevision");
+			//Property hadGeneration = model.getProperty(prov+"hadGeneration");
+			
+			Resource revisionId = (Resource)revisionModel.getProperty(entityId, qualifiedRevision).getObject();
+			//Resource revisionId = (Resource)revisionModel.getProperty(entityId, qualifiedRevision).getObject();
 			
 			ProgramListener plistener = new ProgramListener();
 			
-			plistener.addProgramEvolution(newOldDiff);
+			Model pProvModel = plistener.addProgramEvolution(newOldDiff, actor , revisionId );
 			
 			ControllerListener clistener = new ControllerListener();
 			
-			clistener.addControllerEvolution(newOldDiff);
+			Model cprovModel = clistener.addControllerEvolution(newOldDiff, actor, revisionId);
 			
+
 				
 		}
+		return model;
 		
 	}
 	
-	public boolean getDifference(Model _current, Model _previous) {
-		
-		boolean diffFound = false;
-		Difference diff = new Difference ( _current.getGraph(), _previous.getGraph());
-		
-		ExtendedIterator<Triple> iter = diff.find();
-		
-		if (iter.hasNext()) {
-			
-			while (iter.hasNext()) {
-				Triple tr = iter.next();
-				System.out.println(tr.getSubject()  + "\t" + tr.getPredicate() + "\t" + tr.getObject()); 
-			}
-			
-			diffFound = true;
-		}
-		return diffFound;
-	}
 
 }
