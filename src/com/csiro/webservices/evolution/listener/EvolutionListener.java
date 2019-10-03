@@ -17,6 +17,10 @@ public class EvolutionListener extends GenericService {
 
 	public static String wedata = Configuration.NS_RES;
 	public static String prov = "http://www.w3.org/ns/prov#";
+	public static String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+	public ProgramListener plistener = new ProgramListener();
+	public ControllerListener clistener = new ControllerListener();
+	
 	
 	/**
 	 * Default constructor to initializes logging by its parent.
@@ -34,7 +38,7 @@ public class EvolutionListener extends GenericService {
 		return contains(workflowInstance);
 	}
 	
-	public Model creationProv(String entityId, String actorId) {
+	public Model creationProv(String entityId, String actorId, Model model) {
 		
 		logger.info("Creating a new workflow / component .... ");
 		
@@ -42,7 +46,13 @@ public class EvolutionListener extends GenericService {
 		CreationProvenance RDFCreator =  new CreationProvenance();
 		
 		try {
-			_model = RDFCreator.generateCreationRDF(entityId, actorId);
+			String generation="";
+			_model = RDFCreator.generateCreationRDF(entityId, actorId, null,null);
+//			StmtIterator stmtIter = _model.listStatements(null, _model.getProperty(rdf+"type"), _model.getResource(prov+"Generation"));
+//			String generation = stmtIter.next().getSubject().toString();
+//			_model.add(plistener.addProgramEvolution(model, actorId, generation));
+//			_model.add(clistener.addControllerEvolution(model, actorId, generation));
+
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -91,15 +101,23 @@ public class EvolutionListener extends GenericService {
 			Resource revisionId = (Resource)revisionModel.getProperty(entityId, qualifiedRevision).getObject();
 			//Resource revisionId = (Resource)revisionModel.getProperty(entityId, qualifiedRevision).getObject();
 			
-			ProgramListener plistener = new ProgramListener();
 			
+				
 			Model pProvModel = plistener.addProgramEvolution(newOldDiff, actor , revisionId );
 			
 			ControllerListener clistener = new ControllerListener();
 			
-			Model cprovModel = clistener.addControllerEvolution(newOldDiff, actor, revisionId);
+			Model cprovModel = clistener.addControllerEvolution(newOldDiff, actor, revisionId.toString());
 			
-
+			revisionModel.add(pProvModel);
+			revisionModel.add(cprovModel);
+			
+			StmtIterator iter = revisionModel.listStatements();
+			
+			while (iter.hasNext() ) {
+				Statement t = iter.next();
+				System.out.println(t.getSubject() + "\t" +t.getPredicate()+"\t" +t.getObject());
+			}
 				
 		}
 		return model;

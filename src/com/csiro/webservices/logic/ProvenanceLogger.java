@@ -78,7 +78,8 @@ public class ProvenanceLogger extends GenericService {
 				addWorkflow(_cSpecModel);
 				
 				//Add workflow Evolution Provenance - Generation of Workflow: Workflow Creation Activity
-				Model provModel = listener.creationProv(workflowURIString, actorIdURIString);
+				Model provModel = listener.creationProv(workflowURIString, actorIdURIString, _cSpecModel);
+					
 				addProvenance(provModel);
 			
 			} else {

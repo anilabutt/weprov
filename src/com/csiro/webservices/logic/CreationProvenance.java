@@ -33,7 +33,7 @@ public class CreationProvenance{
 		
 	}
 	
-	public Model generateCreationRDF(String entityId, String actorId, String revisionId) throws JSONException {
+	public Model generateCreationRDF(String entityId, String actorId, String revisionId, String generationId) throws JSONException {
 		// A temporary model to add rdf for this JSON
 		
 		Model _model = TDBFactory.createDataset().getDefaultModel();
@@ -54,6 +54,7 @@ public class CreationProvenance{
 			Property wasAssociatedWith = _model.getProperty(prov+"wasAssociatedWith");
 			Property wasGeneratedBy = _model.getProperty(prov+"wasGeneratedBy");						
 			Property qualifiedGeneration = _model.getProperty(prov+"qualifiedGeneration");
+			Property wasPartOf = _model.getProperty(weprov+"wasPartOf");
 			
 			
 			Property hadGeneration = _model.getProperty(prov+"hadGeneration");
@@ -107,6 +108,11 @@ public class CreationProvenance{
 		if (!revisionId.equalsIgnoreCase("")) {
 			Resource _revision = _model.getResource(revisionId);
 			_revision.addProperty(hadGeneration, _generation);
+		}
+		
+		if (!generationId.equalsIgnoreCase("")) {
+			Resource _parentGeneration = _model.getResource(generationId);
+			_generation.addProperty(wasPartOf, _parentGeneration);
 		}
 		
 		
