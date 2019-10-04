@@ -1,5 +1,7 @@
 package com.csiro.webservices.evolution.listener;
 
+import java.util.HashMap;
+
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -19,27 +21,61 @@ import org.json.JSONObject;
 import com.csiro.webservices.config.Configuration;
 import com.csiro.webservices.logic.CreationProvenance;
 import com.csiro.webservices.rest.GenericService;
+import com.csiro.webservices.store.WeProvOnt;
 //import com.csiro.webservices.rest.Workflow;
 
 public class ProgramListener extends GenericService {
 
-	public static String wedata = Configuration.NS_RES;
-	
+		
 	/**
 	 * Default constructor to initializes logging by its parent.
 	 */
+	
 	public ProgramListener() {
 		super(ProgramListener.class.getName());
 	}
-		
-	public Model addProgramEvolution(Difference diff, String actorId, Resource revisionId) throws JSONException {
-		
+	
+	public Model getProgramCreationProvenance(Model model, String actorId, String creatingEntity) throws JSONException {
+			
 		CreationProvenance creation = new CreationProvenance();
 		
-		Node program = NodeFactory.createURI("http://purl.dataone.org/provone/2015/01/15/ontology#Program");
+		Resource program = ModelFactory.createDefaultModel().createResource(WeProvOnt.Program);
 		
 		Model _model = ModelFactory.createDefaultModel();
 		
+		HashMap<String, String> partOfRel = new HashMap<String, String>();		
+		partOfRel.put("generationId", creatingEntity);
+		
+		if (model.contains(null, null, program)) {
+			
+			StmtIterator iter = model.listStatements(null, null, program);
+			
+			int programCount = 0;
+			
+			while(iter.hasNext()) {
+				
+				Statement tr= iter.next();
+				String entityId = tr.getSubject().toString();
+				_model.add(creation.generateCreationRDF(entityId, actorId, partOfRel));				
+				programCount++;
+			}
+			
+			System.out.println(programCount + " Program(s) Added ... ");
+		} 
+		return _model;
+	}
+
+
+	public Model getProgramCreationProvenance(Difference diff, String actorId, String creatingEntity) throws JSONException {
+		
+		CreationProvenance creation = new CreationProvenance();
+		
+		Node program = NodeFactory.createURI(WeProvOnt.Program);
+		
+		Model _model = ModelFactory.createDefaultModel();
+		
+		HashMap<String, String> partOfRel = new HashMap<String, String>();		
+		partOfRel.put("revisionId", creatingEntity);
 		
 		if (diff.contains(null, null, program)) {
 			
@@ -52,7 +88,7 @@ public class ProgramListener extends GenericService {
 				//System.out.println(tr.getSubject());
 				String entityId = tr.getSubject().toString();
 				
-				_model.add(creation.generateCreationRDF(entityId, actorId, revisionId.toString(),null));
+				_model.add(creation.generateCreationRDF(entityId, actorId, partOfRel));
 				programCount++;
 			}
 			
@@ -61,32 +97,5 @@ public class ProgramListener extends GenericService {
 		return _model;
 	}
 	
-	public Model addProgramEvolution(Model model, String actorId, String generationId) throws JSONException {
-		
-		CreationProvenance creation = new CreationProvenance();
-		
-		RDFNode program = (RDFNode)NodeFactory.createURI("http://purl.dataone.org/provone/2015/01/15/ontology#Program");
-		
-		Model _model = ModelFactory.createDefaultModel();
-		
-		
-		if (model.contains(null, null, program)) {
-			
-			StmtIterator iter = model.listStatements(null, null, program);
-			
-			int programCount = 0;
-			
-			while(iter.hasNext()) {
-				
-				Statement tr= iter.next();
-				String entityId = tr.getSubject().toString();
-				_model.add(creation.generateCreationRDF(entityId, actorId, null, generationId));				
-				programCount++;
-			}
-			
-			System.out.println(programCount + " Program(s) Added ... ");
-		} 
-		return _model;
-	}
-
+	
 }

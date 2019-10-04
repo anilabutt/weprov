@@ -1,5 +1,7 @@
 package com.csiro.webservices.evolution.listener;
 
+import java.util.HashMap;
+
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.Difference;
 import org.apache.jena.rdf.model.*;
@@ -11,13 +13,11 @@ import com.csiro.webservices.config.Configuration;
 import com.csiro.webservices.logic.CreationProvenance;
 import com.csiro.webservices.logic.RevisionProvenance;
 import com.csiro.webservices.rest.GenericService;
+import com.csiro.webservices.store.WeProvOnt;
 //import com.csiro.webservices.rest.Workflow;
 
-public class EvolutionListener extends GenericService {
+public class WorkflowListener extends GenericService {
 
-	public static String wedata = Configuration.NS_RES;
-	public static String prov = "http://www.w3.org/ns/prov#";
-	public static String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 	public ProgramListener plistener = new ProgramListener();
 	public ControllerListener clistener = new ControllerListener();
 	
@@ -25,40 +25,50 @@ public class EvolutionListener extends GenericService {
 	/**
 	 * Default constructor to initializes logging by its parent.
 	 */
-	public EvolutionListener() {
-		super(EvolutionListener.class.getName());
+	public WorkflowListener() {
+		super(WorkflowListener.class.getName());
 	}
 		
 	public boolean previousVersionExists(String workflowId) throws JSONException {
 		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		
 		Resource workflowInstance = _model.getResource(workflowId);
 	
 		return contains(workflowInstance);
 	}
-	
-	public Model creationProv(String entityId, String actorId, Model model) {
+		
+	public Model getWorkflowCreationProvenance(String entityId, String actorId, Model model) {
 		
 		logger.info("Creating a new workflow / component .... ");
 		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
-		CreationProvenance RDFCreator =  new CreationProvenance();
+		Model wModel = ModelFactory.createDefaultModel();
+		CreationProvenance creationProvenance =  new CreationProvenance();
+		HashMap<String, String> partOfRel = new HashMap<String, String>();
 		
 		try {
-			String generation="";
-			_model = RDFCreator.generateCreationRDF(entityId, actorId, null,null);
-//			StmtIterator stmtIter = _model.listStatements(null, _model.getProperty(rdf+"type"), _model.getResource(prov+"Generation"));
-//			String generation = stmtIter.next().getSubject().toString();
-//			_model.add(plistener.addProgramEvolution(model, actorId, generation));
-//			_model.add(clistener.addControllerEvolution(model, actorId, generation));
+			//Generate provenance of workflow creation
+			wModel = creationProvenance.generateCreationRDF(entityId, actorId, partOfRel);		
+			logger.info(" Workflow Creation Provenance Model Size .. " + wModel.size());
+			
+			//Generate provenance of programs (of this workflow) creation			
+			Model pModel = plistener.getProgramCreationProvenance(model, actorId, entityId);
+			logger.info(" Program Creation Provenance Model Size .. " + pModel.size());
+			
+			//Generate provenance of programs (of this workflow) creation			
+			Model cModel = clistener.getControllerCreationProvenance(model, actorId, entityId);
+			logger.info(" Contoller Creation Provenance Model Size .. " + pModel.size());
 
+
+			wModel.add(pModel);
+			wModel.add(cModel);
+			
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		return _model;
+		return wModel;
 	}
 	
 	public Model revisionProv(String entityId, String actorId, String version) {
@@ -68,7 +78,7 @@ public class EvolutionListener extends GenericService {
 		RevisionProvenance RDFCreator =  new RevisionProvenance();
 		
 		try {
-			_model = RDFCreator.generateRDF(entityId, actorId, version);
+			_model = RDFCreator.generateRevisionRDF(entityId, actorId, version, null);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -92,22 +102,13 @@ public class EvolutionListener extends GenericService {
 			
 			RevisionProvenance revision = new RevisionProvenance();
 			
-			Model revisionModel = revision.generateRDF(entity, actor, version );
+			Model revisionModel = revision.generateRevisionRDF(entity, actor, version,null );
 			
-			Resource entityId = model.getResource(entity);
-			Property qualifiedRevision = model.getProperty(prov+"qualifiedRevision");
-			//Property hadGeneration = model.getProperty(prov+"hadGeneration");
-			
-			Resource revisionId = (Resource)revisionModel.getProperty(entityId, qualifiedRevision).getObject();
-			//Resource revisionId = (Resource)revisionModel.getProperty(entityId, qualifiedRevision).getObject();
-			
-			
-				
-			Model pProvModel = plistener.addProgramEvolution(newOldDiff, actor , revisionId );
+			Model pProvModel = plistener.getProgramCreationProvenance(newOldDiff, actor , entity );
 			
 			ControllerListener clistener = new ControllerListener();
 			
-			Model cprovModel = clistener.addControllerEvolution(newOldDiff, actor, revisionId.toString());
+			Model cprovModel = clistener.getControllerCreationProvenance(newOldDiff, actor, entity);
 			
 			revisionModel.add(pProvModel);
 			revisionModel.add(cprovModel);

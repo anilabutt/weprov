@@ -13,17 +13,13 @@ import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.tdb.TDBFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.csiro.webservices.config.Configuration;
 import com.csiro.webservices.logic.CreationProvenance;
 import com.csiro.webservices.rest.GenericService;
-//import com.csiro.webservices.rest.Workflow;
+import com.csiro.webservices.store.WeProvOnt;
 
 public class ControllerListener extends GenericService {
 
-	public static String wedata = Configuration.NS_RES;
-	
+
 	/**
 	 * Default constructor to initializes logging by its parent.
 	 */
@@ -31,11 +27,13 @@ public class ControllerListener extends GenericService {
 		super(ControllerListener.class.getName());
 	}
 	
-	public Model addControllerEvolution(Model model, String actorId, String generationId) throws JSONException {
+	//Generating Controller Creation Provenance as Part of Workflow Creation Provenance
+	
+	public Model getControllerCreationProvenance(Model model, String actorId, String generationId) throws JSONException {
 		
 		CreationProvenance creation = new CreationProvenance();
 		
-		RDFNode controller = (RDFNode)NodeFactory.createURI("http://purl.dataone.org/provone/2015/01/15/ontology#Controller");
+		Resource controller = ModelFactory.createDefaultModel().createResource(WeProvOnt.Controller);
 		
 		Model _model = ModelFactory.createDefaultModel();
 		
@@ -46,7 +44,7 @@ public class ControllerListener extends GenericService {
 			while(iter.hasNext()) {				
 				Statement tr= iter.next();
 				String entityId = tr.getSubject().toString();
-				_model.add(creation.generateCreationRDF(entityId, actorId, null,null));				
+				_model.add(creation.generateCreationRDF(entityId, actorId, null));				
 				controllerCount++;
 			}
 			
@@ -54,13 +52,16 @@ public class ControllerListener extends GenericService {
 		} 
 		return _model;
 	}
-		
-	public Model addControllerEvolution(Difference diff, String actorId, String revision) throws JSONException {
+	
+	
+	//Generating Controller Creation Provenance as PartOf Workflow Revision Provenance
+	
+	public Model getControllerCreationProvenance(Difference diff, String actorId, String revision) throws JSONException {
 		
 		CreationProvenance creation = new CreationProvenance();
 		Model _model = ModelFactory.createDefaultModel();
 		
-		Node controller = NodeFactory.createURI("http://purl.dataone.org/provone/2015/01/15/ontology#Controller");
+		Node controller = NodeFactory.createURI(WeProvOnt.Controller);
 		
 		if (diff.contains(null, null, controller)) {
 			
@@ -69,7 +70,7 @@ public class ControllerListener extends GenericService {
 			while(iter.hasNext()) {
 				Triple tr= iter.next();
 				String entityId = tr.getSubject().toString();
-				_model.add(creation.generateCreationRDF(entityId, actorId, revision,null));
+				_model.add(creation.generateCreationRDF(entityId, actorId, null));
 				controllerCount++;
 			}
 			System.out.println(controllerCount + " Controller(s) Added ... ");

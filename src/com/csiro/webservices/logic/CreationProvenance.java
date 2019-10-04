@@ -1,6 +1,7 @@
 package com.csiro.webservices.logic;
 
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -16,62 +17,53 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.csiro.webservices.config.Configuration;
+import com.csiro.webservices.store.WeProvData;
+import com.csiro.webservices.store.WeProvOnt;
 
 
 public class CreationProvenance{
 
-	public static String weprov = Configuration.NS_WEPROV; //"http://www.csiro.au/digiscape/weprov#";
-	public static String wedata = Configuration.NS_RES;
-	public static String weprovdata = Configuration.NS_EVORES;
-	public static String provone = "http://purl.dataone.org/provone/2015/01/15/ontology#";
-	public static String prov = "http://www.w3.org/ns/prov#";
-	public static String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-	public static String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
-	public static String foaf = "http://xmlns.com/foaf/0.1/";
-	
 	public CreationProvenance() {
 		
 	}
 	
-	public Model generateCreationRDF(String entityId, String actorId, String revisionId, String generationId) throws JSONException {
+	public Model generateCreationRDF(String entityId, String actorId, HashMap<String, String> partOfRel) throws JSONException {
+		
 		// A temporary model to add rdf for this JSON
-		
+
 		Model _model = TDBFactory.createDataset().getDefaultModel();
-		
+				
 		//Get Classes and Properties of weprov model
 		
-		  Resource Agent = _model.getResource(prov + "Agent");
-		  Resource Activity = _model.getResource(prov+"Activity");		  
-		  Resource Generation = _model.getResource(prov+"Generation");		
-		  Resource Creation = _model.getResource(weprov+"Creation");		  
+		  Resource Agent = _model.getResource(WeProvOnt.Agent);
+		  Resource Activity = _model.getResource(WeProvOnt.Activity);		  
+		  Resource Generation = _model.getResource(WeProvOnt.Generation);		
+		  Resource Creation = _model.getResource(WeProvOnt.Creation);		  
 		  
 		//Property Declaration
 
 			//General Properties
-			Property rdfTypeProperty = _model.getProperty(rdf+"type");
+			Property rdfTypeProperty = _model.getProperty(WeProvOnt.rdfType);
 				
 			// Associations		
-			Property wasAssociatedWith = _model.getProperty(prov+"wasAssociatedWith");
-			Property wasGeneratedBy = _model.getProperty(prov+"wasGeneratedBy");						
-			Property qualifiedGeneration = _model.getProperty(prov+"qualifiedGeneration");
-			Property wasPartOf = _model.getProperty(weprov+"wasPartOf");
+			Property wasAssociatedWith = _model.getProperty(WeProvOnt.wasAssociatedWith);
+			Property wasGeneratedBy = _model.getProperty(WeProvOnt.wasGeneratedBy);						
+			Property qualifiedGeneration = _model.getProperty(WeProvOnt.qualifiedGeneration);
+			Property wasPartOf = _model.getProperty(WeProvOnt.wasPartOf);
 			
 			
-			Property hadGeneration = _model.getProperty(prov+"hadGeneration");
-			Property hadUsage = _model.getProperty(prov+"hadUsage");
-			Property hadActivity = _model.getProperty(prov+"hadActivity");
-			Property hadInvalidation = _model.getProperty(prov+"hadInvalidation");
+			Property hadGeneration = _model.getProperty(WeProvOnt.hadGeneration);
 			
-			Property agent = _model.getProperty(prov+"agent");
-			Property entity = _model.getProperty(prov+"entity");
-			Property activity = _model.getProperty(prov+"activity");
+			Property agent = _model.getProperty(WeProvOnt.agent);
+			Property entity = _model.getProperty(WeProvOnt.entity);
+			Property activity = _model.getProperty(WeProvOnt.activity);
 			
 			// Properties
-			Property atTime = _model.getProperty(prov+"atTime");
-			Property startedAtTime = _model.getProperty(prov+"startedAtTime");
-			Property endedAtTime = _model.getProperty(prov+"endedAtTime");
-			Property foafname = _model.getProperty(foaf+"name");
-			Property versionProperty = _model.getProperty(weprov+"version");
+			Property atTime = _model.getProperty(WeProvOnt.atTime);
+			Property startedAtTime = _model.getProperty(WeProvOnt.startedAtTime);
+			Property endedAtTime = _model.getProperty(WeProvOnt.endedAtTime);
+			Property foafname = _model.getProperty(WeProvOnt.foafname);
+			Property versionProperty = _model.getProperty(WeProvOnt.version);
 			
 
 		
@@ -84,12 +76,12 @@ public class CreationProvenance{
 		 * Generate evolution provenance here
 		 **/
 		
-		Resource _creation = _model.getResource(weprovdata +"creation/"+ entityId.replace(wedata, ""));
+		Resource _creation = _model.getResource(WeProvData.creation+ entityId.replace(WeProvData.wedata, ""));
 		_creation.addProperty(rdfTypeProperty, Creation);
 		_creation.addProperty(rdfTypeProperty, Activity);
 		_creation.addProperty(startedAtTime, _model.createTypedLiteral(GregorianCalendar.getInstance()));
 		
-		Resource _generation = _model.getResource(weprovdata +"generation/"+ entityId.replace(wedata, "") );
+		Resource _generation = _model.getResource(WeProvData.generation+ entityId.replace(WeProvData.wedata, "") );
 		_generation.addProperty(rdfTypeProperty, Generation);
 		_generation.addProperty(atTime, _model.createTypedLiteral(GregorianCalendar.getInstance()));
 		_generation.addProperty(activity, _creation);
@@ -105,13 +97,15 @@ public class CreationProvenance{
 			_creation.addProperty(wasAssociatedWith, agentInstance);
 		}
 		
-		if (!revisionId.equalsIgnoreCase("")) {
-			Resource _revision = _model.getResource(revisionId);
+		if(partOfRel.containsKey("revisionId")) {
+			String id = partOfRel.get("revisionId");
+			Resource _revision = _model.getResource(WeProvData.revision+ id.replace(WeProvData.wedata, ""));
 			_revision.addProperty(hadGeneration, _generation);
 		}
 		
-		if (!generationId.equalsIgnoreCase("")) {
-			Resource _parentGeneration = _model.getResource(generationId);
+		if (partOfRel.containsKey("generationId")) {
+			String id = partOfRel.get("generationId");
+			Resource _parentGeneration = _model.getResource(WeProvData.generation+ id.replace(WeProvData.wedata, ""));
 			_generation.addProperty(wasPartOf, _parentGeneration);
 		}
 		

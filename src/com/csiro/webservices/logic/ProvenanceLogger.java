@@ -15,14 +15,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.csiro.webservices.config.Configuration;
-import com.csiro.webservices.evolution.listener.EvolutionListener;
+import com.csiro.webservices.evolution.listener.WorkflowListener;
 import com.csiro.webservices.rest.GenericService;
+import com.csiro.webservices.store.WeProvData;
+import com.csiro.webservices.store.WeProvOnt;
 
 public class ProvenanceLogger extends GenericService {
-
-	public static String wedata = Configuration.NS_RES;
-	public static String weprov = Configuration.NS_WEPROV;
-
 			
 	public ProvenanceLogger(String loggerName) {
 		super(ProvenanceLogger.class.getName());
@@ -49,12 +47,13 @@ public class ProvenanceLogger extends GenericService {
 			JSONObject obj = new JSONObject(workflowBuilder.toString());
 			
 			String _workflowId = obj.getString("workflowId");
-			String workflowURIString = wedata+"workflow/"+_workflowId;
+			
+			String workflowURIString = WeProvData.workflow+_workflowId;
 			
 			String actorIdURIString = "";
 			
 			if (obj.has("userId")){
-				actorIdURIString = wedata+"agent/"+obj.getString("userId");
+				actorIdURIString = WeProvData.agent + obj.getString("userId");
 			}
 			
 			
@@ -62,10 +61,10 @@ public class ProvenanceLogger extends GenericService {
 			// Get workflow specification provenance 
 			
 			SpecificationProvenance specProv = new SpecificationProvenance();
-			Model _cSpecModel = specProv.generateSpecificationRDF(workflowBuilder.toString()); 
+			Model cSpecModel = specProv.generateSpecificationRDF(workflowBuilder.toString()); 
 			
 			//Check if Workflow previous version exists
-			EvolutionListener listener = new EvolutionListener();
+			WorkflowListener listener = new WorkflowListener();
 			
 			boolean pVersion = listener.previousVersionExists(workflowURIString);
 			
@@ -75,18 +74,18 @@ public class ProvenanceLogger extends GenericService {
 			if(!pVersion) {
 			
 				// Add Workflow Specification Provenance
-				addWorkflow(_cSpecModel);
+				addWorkflow(cSpecModel);
 				
 				//Add workflow Evolution Provenance - Generation of Workflow: Workflow Creation Activity
-				Model provModel = listener.creationProv(workflowURIString, actorIdURIString, _cSpecModel);
+				Model provModel = listener.getWorkflowCreationProvenance(workflowURIString, actorIdURIString, cSpecModel);
 					
 				addProvenance(provModel);
 			
 			} else {
 				
-				Model _pSpecModel = getWorkflowAsModel(_workflowId);
+				Model pSpecModel = getWorkflowAsModel(_workflowId);
 				//Model _workflowDescription = getResource(workflowURIString, "provModel");
-				String version = getPropertyValue(_pSpecModel.getResource(workflowURIString), _pSpecModel.getProperty(weprov+"version"));
+				String version = getPropertyValue(pSpecModel.getResource(workflowURIString), pSpecModel.getProperty(WeProvOnt.version));
 				
 				logger.info("pervious version number : " + version);
 				
@@ -94,7 +93,7 @@ public class ProvenanceLogger extends GenericService {
 				
 				logger.info("pervious version number : " + currentVersion);
 				
-				Model model = listener.evolutionActivity(_cSpecModel, _pSpecModel, workflowURIString, actorIdURIString, currentVersion+"");
+				Model model = listener.evolutionActivity(cSpecModel, pSpecModel, workflowURIString, actorIdURIString, currentVersion+"");
 
 
 			}

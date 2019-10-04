@@ -29,34 +29,34 @@ public class SPARQLQueryTest {
 				
 				Dataset baseDataSet= TDBFactory.createDataset(Configuration.getProperty(Configuration.STORE_PATH));
 				Model baseModel = baseDataSet.getNamedModel(Configuration.NS_EVORES); 
-				Resource subject = baseModel.getResource("http://weprov.csiro.au/workflow/abc");
-				Property prop = baseModel.getProperty("http://purl.org/ontology/weprov#version");
-				Statement stmt = baseModel.getProperty(subject, prop);
-				System.out.println(stmt.getLiteral().getLexicalForm());
+//				Resource subject = baseModel.getResource("http://weprov.csiro.au/workflow/abc");
+//				Property prop = baseModel.getProperty("http://purl.org/ontology/weprov#version");
+//				Statement stmt = baseModel.getProperty(subject, prop);
+//				System.out.println(stmt.getLiteral().getLexicalForm());
 			
 				
-//				JSONObject resultObj  =  new JSONObject();
-//				String sparql = "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>"+
-//						"PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
-//				        "PREFIX owl:<http://www.w3.org/2002/07/owl#>"+
-//				        "PREFIX weprov:<http://weprov.csiro.au/workflow/>"+
-//				        //"PREFIX weprov:<http://weprov.csiro.au/>"+
-//				        "PREFIX provone:<http://purl.dataone.org/provone/2015/01/15/ontology#>"+
-//						"PREFIX prov:<http://www.w3.org/ns/prov#>"+
-//
-////				        "SELECT DISTINCT ?programId ?inportId ?outportId ?channelInId ?paramId ?paramValue ?outportId ?channelOutId ?controllerId WHERE {" +
-////				        "weprov:abc rdf:type ?type;"
-////				         +"	provone:hasSubProgram ?program. ?program rdfs:label ?programId."
-////				        + "?program provone:hasInPort ?inport. ?inport rdfs:label ?inportId."
-////				        	+ "OPTIONAL {?inport provone:connectsTo ?channelIn. ?channelIn rdfs:label ?channelInId.} "
-////				        	+ "OPTIONAL {?inport provone:hasDefaultParam ?param. ?param rdfs:label ?paramId."
-////				        		+ "?param prov:value ?paramValue. }"
-////				        + "?program provone:hasOutPort ?outport. ?outport rdfs:label ?outportId. "
-////				        	+ "?outport provone:connectsTo ?channelOut. ?channelOut rdfs:label ?channelOutId. "
-////					        + "OPTIONAL  {?program provone:controlledBy/rdfs:label ?controllerId. }"
-////				        + "}";
-//
-//"SELECT * WHERE {?s ?p ?o}";
+				JSONObject resultObj  =  new JSONObject();
+				String sparql = "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>"+
+						"PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
+				        "PREFIX owl:<http://www.w3.org/2002/07/owl#>"+
+				        "PREFIX weprov:<http://weprov.csiro.au/workflow/>"+
+				        //"PREFIX weprov:<http://weprov.csiro.au/>"+
+				        "PREFIX provone:<http://purl.dataone.org/provone/2015/01/15/ontology#>"+
+						"PREFIX prov:<http://www.w3.org/ns/prov#>"+
+
+//				        "SELECT DISTINCT ?programId ?inportId ?outportId ?channelInId ?paramId ?paramValue ?outportId ?channelOutId ?controllerId WHERE {" +
+//				        "weprov:abc rdf:type ?type;"
+//				         +"	provone:hasSubProgram ?program. ?program rdfs:label ?programId."
+//				        + "?program provone:hasInPort ?inport. ?inport rdfs:label ?inportId."
+//				        	+ "OPTIONAL {?inport provone:connectsTo ?channelIn. ?channelIn rdfs:label ?channelInId.} "
+//				        	+ "OPTIONAL {?inport provone:hasDefaultParam ?param. ?param rdfs:label ?paramId."
+//				        		+ "?param prov:value ?paramValue. }"
+//				        + "?program provone:hasOutPort ?outport. ?outport rdfs:label ?outportId. "
+//				        	+ "?outport provone:connectsTo ?channelOut. ?channelOut rdfs:label ?channelOutId. "
+//					        + "OPTIONAL  {?program provone:controlledBy/rdfs:label ?controllerId. }"
+//				        + "}";
+
+"SELECT * WHERE {?s ?p ?o}";
 //				
 ////				String sparql = "PREFIX provone:<http://purl.dataone.org/provone/2015/01/15/ontology#>"
 ////				+ "select ?begin ?midI  ?midJ ?end "
@@ -71,9 +71,9 @@ public class SPARQLQueryTest {
 ////						+ "group by ?begin ?end ?midI ?midJ "
 ////						+ "order by ?begin ?end count(?counter)";
 ////				
-//				QueryExecution qexec = QueryExecutionFactory.create(sparql,Syntax.syntaxSPARQL_11, baseModel);
-//				ResultSet results = qexec.execSelect();
-//				ResultSetFormatter.out(System.out, results);
+				QueryExecution qexec = QueryExecutionFactory.create(sparql,Syntax.syntaxSPARQL_11, baseModel);
+				ResultSet results = qexec.execSelect();
+				ResultSetFormatter.out(System.out, results);
 //				
 ////				String sparql ="PREFIX ifkm:<http://purl.org/ontology/ifkm#>" +
 ////				        "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>"+

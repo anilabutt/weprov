@@ -26,7 +26,7 @@ import org.apache.jena.rdf.model.Model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.csiro.webservices.evolution.listener.EvolutionListener;
+import com.csiro.webservices.evolution.listener.WorkflowListener;
 import com.csiro.webservices.logic.ProvenanceLogger;
 import com.csiro.webservices.logic.CreationProvenance;
 import com.csiro.webservices.store.OntMediaType;
