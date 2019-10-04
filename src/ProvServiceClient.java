@@ -22,7 +22,7 @@ public class ProvServiceClient {
  
 			// Step1: Let's 1st read file from fileSystem
 			// Change CrunchifyJSON.txt path here
-			InputStream jsonInputStream = new FileInputStream("json.txt"); //"JSON_Template.txt"
+			InputStream jsonInputStream = new FileInputStream("JSON_Template.txt"); //"JSON_Template.txt"
 			InputStreamReader jsonReader = new InputStreamReader(jsonInputStream);
 			BufferedReader br = new BufferedReader(jsonReader);
 			String line;

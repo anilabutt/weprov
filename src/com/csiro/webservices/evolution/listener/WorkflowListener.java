@@ -20,6 +20,7 @@ public class WorkflowListener extends GenericService {
 
 	public ProgramListener plistener = new ProgramListener();
 	public ControllerListener clistener = new ControllerListener();
+	//ControllerListener clistener = new ControllerListener();
 	
 	
 	/**
@@ -94,29 +95,37 @@ public class WorkflowListener extends GenericService {
 		Difference newOldDiff = new Difference ( _current.getGraph(), _previous.getGraph());
 		Difference oldNewDiff = new Difference ( _previous.getGraph(), _current.getGraph());
 		
+	logger.info("New - Old " + newOldDiff.size() + " Old - New " + oldNewDiff.size());
+	
+	
+	
 		if(newOldDiff.isEmpty() && oldNewDiff.isEmpty()) {
 			
 			logger.info("New Version is SameAs old one ");
 		
 		} else if(!newOldDiff.isEmpty() && oldNewDiff.isEmpty() ) {
 			
+//			ExtendedIterator<Triple> iter = newOldDiff.find();
+//			while (iter.hasNext()) {
+//				Triple t = iter.next();
+//				System.out.println(t.getSubject()+ "\t" +t.getPredicate()+"\t"+t.getObject());
+//			}
+			
 			RevisionProvenance revision = new RevisionProvenance();
 			
-			Model revisionModel = revision.generateRevisionRDF(entity, actor, version,null );
+			Model revisionModel = revision.generateRevisionRDF(entity, actor, version, "" );
 			
-			Model pProvModel = plistener.getProgramCreationProvenance(newOldDiff, actor , entity );
+			Model pProvModel = plistener.getProgramCreationProvenance(newOldDiff, actor , entity, version );
 			
-			ControllerListener clistener = new ControllerListener();
-			
-			Model cprovModel = clistener.getControllerCreationProvenance(newOldDiff, actor, entity);
+			Model cprovModel = clistener.getControllerCreationProvenance(newOldDiff, actor, entity, version);
 			
 			revisionModel.add(pProvModel);
 			revisionModel.add(cprovModel);
 			
-			StmtIterator iter = revisionModel.listStatements();
+			StmtIterator sIter = revisionModel.listStatements();
 			
-			while (iter.hasNext() ) {
-				Statement t = iter.next();
+			while (sIter.hasNext() ) {
+				Statement t = sIter.next();
 				System.out.println(t.getSubject() + "\t" +t.getPredicate()+"\t" +t.getObject());
 			}
 				

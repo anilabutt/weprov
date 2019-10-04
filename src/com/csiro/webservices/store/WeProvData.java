@@ -10,6 +10,7 @@ public class WeProvData {
 	// data
 	
 	public static final String workflow = wedata+"workflow/";
+	public static final String program = wedata+"program/";
 	public static final String agent = wedata+"agent/";
 	
 	public static final String generation = weprovdata +"generation/";

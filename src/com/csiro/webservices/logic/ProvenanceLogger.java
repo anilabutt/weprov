@@ -63,6 +63,15 @@ public class ProvenanceLogger extends GenericService {
 			SpecificationProvenance specProv = new SpecificationProvenance();
 			Model cSpecModel = specProv.generateSpecificationRDF(workflowBuilder.toString()); 
 			
+//			logger.info("pervious model .... ");
+//			StmtIterator iter = cSpecModel.listStatements();
+//			
+//			while (iter.hasNext() ) {
+//				Statement t = iter.next();
+//				System.out.println(t.getSubject() + "\t" +t.getPredicate()+"\t" +t.getObject());
+//			}
+//			
+			
 			//Check if Workflow previous version exists
 			WorkflowListener listener = new WorkflowListener();
 			
@@ -85,6 +94,16 @@ public class ProvenanceLogger extends GenericService {
 				
 				Model pSpecModel = getWorkflowAsModel(_workflowId);
 				//Model _workflowDescription = getResource(workflowURIString, "provModel");
+//				
+//				logger.info("pervious model .... ");
+//				
+//				StmtIterator iter2 = pSpecModel.listStatements();
+//				
+//				while (iter2.hasNext() ) {
+//					Statement t = iter2.next();
+//					System.out.println(t.getSubject() + "\t" +t.getPredicate()+"\t" +t.getObject());
+//				}
+//				
 				String version = getPropertyValue(pSpecModel.getResource(workflowURIString), pSpecModel.getProperty(WeProvOnt.version));
 				
 				logger.info("pervious version number : " + version);

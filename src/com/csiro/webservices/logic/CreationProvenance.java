@@ -99,7 +99,7 @@ public class CreationProvenance{
 		
 		if(partOfRel.containsKey("revisionId")) {
 			String id = partOfRel.get("revisionId");
-			Resource _revision = _model.getResource(WeProvData.revision+ id.replace(WeProvData.wedata, ""));
+			Resource _revision = _model.getResource(id);
 			_revision.addProperty(hadGeneration, _generation);
 		}
 		

@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import com.csiro.webservices.config.Configuration;
 import com.csiro.webservices.logic.CreationProvenance;
 import com.csiro.webservices.rest.GenericService;
+import com.csiro.webservices.store.WeProvData;
 import com.csiro.webservices.store.WeProvOnt;
 //import com.csiro.webservices.rest.Workflow;
 
@@ -34,6 +35,8 @@ public class ProgramListener extends GenericService {
 	public ProgramListener() {
 		super(ProgramListener.class.getName());
 	}
+	
+	//Generating Program Creation Provenance as Part of Workflow Creation Provenance
 	
 	public Model getProgramCreationProvenance(Model model, String actorId, String creatingEntity) throws JSONException {
 			
@@ -65,8 +68,9 @@ public class ProgramListener extends GenericService {
 		return _model;
 	}
 
-
-	public Model getProgramCreationProvenance(Difference diff, String actorId, String creatingEntity) throws JSONException {
+	//Generating Program Creation Provenance as Part of Workflow Revision Provenance
+	
+	public Model getProgramCreationProvenance(Difference diff, String actorId, String creatingEntity, String version) throws JSONException {
 		
 		CreationProvenance creation = new CreationProvenance();
 		
@@ -75,7 +79,11 @@ public class ProgramListener extends GenericService {
 		Model _model = ModelFactory.createDefaultModel();
 		
 		HashMap<String, String> partOfRel = new HashMap<String, String>();		
-		partOfRel.put("revisionId", creatingEntity);
+		
+		String revisionId = WeProvData.revision + version +"/" +creatingEntity.replace(WeProvData.wedata, "");
+		
+		partOfRel.put("revisionId", revisionId);
+		
 		
 		if (diff.contains(null, null, program)) {
 			
@@ -90,6 +98,40 @@ public class ProgramListener extends GenericService {
 				
 				_model.add(creation.generateCreationRDF(entityId, actorId, partOfRel));
 				programCount++;
+			}
+			
+			System.out.println(programCount + " Program(s) Added ... ");
+		} 
+		return _model;
+	}
+	
+	public Model getProgramRevisionProvenance(Difference diff, String actorId, String creatingEntity, String version) throws JSONException {
+		
+		CreationProvenance creation = new CreationProvenance();
+		
+		Node program = NodeFactory.createURI(WeProvOnt.Program);
+		
+		Model _model = ModelFactory.createDefaultModel();
+		
+		HashMap<String, String> partOfRel = new HashMap<String, String>();		
+		
+		String revisionId = WeProvData.revision + version +"/" +creatingEntity.replace(WeProvData.wedata, "");
+		
+		partOfRel.put("revisionId", revisionId);
+		
+		
+		if (diff.contains(null, null, program)) {
+			
+			ExtendedIterator<Triple> iter = diff.find();
+			
+			int programCount = 0;
+			
+			while(iter.hasNext()) {
+				Triple tr= iter.next();
+				//System.out.println(tr.getSubject());
+				String entityId = tr.getSubject().toString();
+				if(entityId.startsWith(WeProvData.))
+				diff.remove(tr.getSubject(), null, null);
 			}
 			
 			System.out.println(programCount + " Program(s) Added ... ");

@@ -132,13 +132,13 @@ public abstract class GenericService extends LoggerService {
 		String sparql ="PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>"+
 		        "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
 		        "PREFIX owl:<http://www.w3.org/2002/07/owl#>"+
-		        "PREFIX weprov:<"+Configuration.NS_WEPROV+">"+
-		        "PREFIX wedata:<"+Configuration.NS_RES+"workflow/"+">"+
+		        "PREFIX weprov:<"+WeProvOnt.weprov+">"+
+		        "PREFIX wedata:<"+WeProvData.workflow+">"+
 		        "PREFIX provone:<http://purl.dataone.org/provone/2015/01/15/ontology#>"+
 				"PREFIX prov:<http://www.w3.org/ns/prov#>"+
 
 		        "Construct {"
-		        + "wedata:"+workflowId+ " rdf:type provone:Workflow; rdfs:label ?label. " 
+		        + "wedata:"+workflowId+ " rdf:type provone:Workflow. wedata:"+workflowId+" rdfs:label ?label. " 
 		        + "wedata:"+workflowId+ " provone:hasSubProgram ?program. ?program rdfs:label ?programId. ?program rdf:type ?programType."
 		        + "?program weprov:host ?model. ?model rdfs:label ?modelId. ?model rdf:type ?modelType."
 		        + "?program provone:hasInPort ?inport. ?inport rdfs:label ?inportId. ?inport rdf:type ?inPortType."
@@ -149,19 +149,19 @@ public abstract class GenericService extends LoggerService {
 		        + "?program provone:controlledBy ?controller. ?controller rdfs:label ?controllerId. ?controller rdf:type ?controllerType. ?controller provone:controls ?anotherProgram."
 		        + "}"
 		        + " WHERE {" 
-		        + "wedata:"+workflowId+ " rdf:type provone:Workflow; rdfs:label ?label. " 
-		        + " OPTIONAL { wedata:"+workflowId+"  provone:hasSubProgram ?program. ?program rdfs:label ?programId. ?program rdf:type ?programType."
-		        + "?program weprov:host ?model. ?model rdfs:label ?modelId. ?model rdf:type ?modelType."
-		        + "?program  provone:hasInPort	 ?inport. ?inport rdfs:label ?inportId. ?inport rdf:type ?inPortType."
+		        + "wedata:"+workflowId+ " rdf:type provone:Workflow. wedata:"+workflowId+" rdfs:label ?label. " 
+		        + "OPTIONAL {wedata:"+workflowId+"  provone:hasSubProgram ?program. ?program rdfs:label ?programId. ?program rdf:type ?programType.}"
+		        + "OPTIONAL {?program weprov:host ?model. ?model rdfs:label ?modelId. ?model rdf:type ?modelType.}"
+		        + "OPTIONAL {?program  provone:hasInPort ?inport. ?inport rdfs:label ?inportId. ?inport rdf:type ?inPortType.}"
 		        	+ "OPTIONAL {?inport provone:connectsTo ?channelIn. ?channelIn rdfs:label ?channelInId. ?channelIn rdf:type ?channelInType.} "
 		        	+ "OPTIONAL {?inport provone:hasDefaultParam ?param. ?param rdfs:label ?paramId. ?param rdf:type ?paramType."
 		        		+ "?param prov:value ?paramValue. }"
-		        + "?program provone:hasOutPort ?outport. ?outport rdfs:label ?outportId. ?outport rdf:type ?outPortType."
-		        	+ "?outport provone:connectsTo ?channelOut. ?channelOut rdfs:label ?channelOutId. ?channelOut rdf:type ?channelOutType."
+		        + "OPTIONAL {?program provone:hasOutPort ?outport. ?outport rdfs:label ?outportId. ?outport rdf:type ?outPortType.}"
+		        	+ "OPTIONAL {?outport provone:connectsTo ?channelOut. ?channelOut rdfs:label ?channelOutId. ?channelOut rdf:type ?channelOutType.}"
 		        + "OPTIONAL  {?program provone:controlledBy ?controller. "
 		        	+ "?controller rdfs:label ?controllerId. "
 		        	+ "?controller rdf:type ?controllerType."
-		        	+ "?controller provone:controls ?anotherProgram. } } "
+		        	+ "?controller provone:controls ?anotherProgram. } "
 		        + "}";
 		
         logger.info("Prepared SPARQL query successfully");
