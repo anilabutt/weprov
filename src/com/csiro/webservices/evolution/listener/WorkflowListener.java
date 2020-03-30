@@ -60,7 +60,6 @@ public class WorkflowListener extends GenericService {
 			Model cModel = clistener.getControllerCreationProvenance(model, actorId, entityId);
 			logger.info(" Contoller Creation Provenance Model Size .. " + pModel.size());
 
-
 			wModel.add(pModel);
 			wModel.add(cModel);
 			
@@ -68,7 +67,6 @@ public class WorkflowListener extends GenericService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 		return wModel;
 	}
 	
@@ -95,7 +93,7 @@ public class WorkflowListener extends GenericService {
 		Difference newOldDiff = new Difference ( _current.getGraph(), _previous.getGraph());
 		Difference oldNewDiff = new Difference ( _previous.getGraph(), _current.getGraph());
 		
-	logger.info("New - Old " + newOldDiff.size() + " Old - New " + oldNewDiff.size());
+//		logger.info("New - Old " + newOldDiff.size() + " Old - New " + oldNewDiff.size());
 	
 	
 	
@@ -105,30 +103,31 @@ public class WorkflowListener extends GenericService {
 		
 		} else if(!newOldDiff.isEmpty() && oldNewDiff.isEmpty() ) {
 			
-//			ExtendedIterator<Triple> iter = newOldDiff.find();
-//			while (iter.hasNext()) {
-//				Triple t = iter.next();
-//				System.out.println(t.getSubject()+ "\t" +t.getPredicate()+"\t"+t.getObject());
-//			}
-			
 			RevisionProvenance revision = new RevisionProvenance();
 			
 			Model revisionModel = revision.generateRevisionRDF(entity, actor, version, "" );
 			
-			Model pProvModel = plistener.getProgramCreationProvenance(newOldDiff, actor , entity, version );
+			Model provModel = plistener.findProgramEvolutionActivity(newOldDiff, actor, entity, version);
+			System.out.println("findProgramEvolutionActivity : " + provModel.size());
+			revisionModel.add(provModel);
 			
-			Model cprovModel = clistener.getControllerCreationProvenance(newOldDiff, actor, entity, version);
+//			Model pProvModel = plistener.getProgramCreationProvenance(newOldDiff, actor , entity, version );
+//			
+//			Model cprovModel = clistener.getControllerCreationProvenance(newOldDiff, actor, entity, version);
 			
-			revisionModel.add(pProvModel);
-			revisionModel.add(cprovModel);
 			
-			StmtIterator sIter = revisionModel.listStatements();
 			
-			while (sIter.hasNext() ) {
-				Statement t = sIter.next();
-				System.out.println(t.getSubject() + "\t" +t.getPredicate()+"\t" +t.getObject());
-			}
-				
+//			revisionModel.add(pProvModel);
+//			revisionModel.add(cprovModel);
+			
+			
+//			StmtIterator sIter = revisionModel.listStatements();
+//			
+//			while (sIter.hasNext() ) {
+//				Statement t = sIter.next();
+//				System.out.println(t.getSubject() + "\t" +t.getPredicate()+"\t" +t.getObject());
+//			}
+//				
 		}
 		return model;
 		

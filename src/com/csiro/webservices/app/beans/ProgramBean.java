@@ -4,10 +4,11 @@ import java.util.ArrayList;
 
 public class ProgramBean {
 
-	private String programId;
-	private String modelId;
-	private ArrayList<PortBean> inports; 
-	private ArrayList<PortBean> outports;
+	private String programId="";
+	private String modelId="";
+	private String type="";
+	private Workflow workflow= new Workflow();
+
 	
 	public void setProgramId(String programId) {
 		this.programId= programId;
@@ -17,12 +18,12 @@ public class ProgramBean {
 		this.modelId = modelId;
 	}
 	
-	public void setInports(ArrayList<PortBean> inports) {
-		this.inports = inports;
+	public void setType(String type) {
+		this.type = type;
 	}
 	
-	public void setOutports(ArrayList<PortBean> outports) {
-		this.outports = outports;
+	public void setWorkflow(Workflow workflow) {
+		this.workflow = workflow;
 	}
 	
 	public String getProgramId() {
@@ -33,11 +34,13 @@ public class ProgramBean {
 		return this.modelId;
 	}
 	
-	public ArrayList<PortBean> getInports() {
-		return this.inports;
+	public String getType() {
+		return this.type;
 	}
 	
-	public ArrayList<PortBean> getOutports() {
-		return this.outports;
+	public Workflow getWorkflow() {
+		return this.workflow;
 	}
+	
+
 }

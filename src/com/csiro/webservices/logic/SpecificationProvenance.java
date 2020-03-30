@@ -9,18 +9,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.csiro.webservices.config.Configuration;
+import com.csiro.webservices.store.WeProvData;
+import com.csiro.webservices.store.WeProvOnt;
 
 public class SpecificationProvenance{
 
-	public static String weprov = Configuration.NS_WEPROV; //"http://www.csiro.au/digiscape/weprov#";
-	public static String wedata = Configuration.NS_RES;
-	public static String weprovdata = Configuration.NS_EVORES;
-	public static String provone = "http://purl.dataone.org/provone/2015/01/15/ontology#";
-	public static String prov = "http://www.w3.org/ns/prov#";
-	public static String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-	public static String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
-	public static String foaf = "http://xmlns.com/foaf/0.1/";
-	
 	public SpecificationProvenance() {
 		
 	}
@@ -32,44 +25,47 @@ public class SpecificationProvenance{
 		
 		//Get Classes and Properties of weprov model
 		
-		  Resource Agent = _model.getResource(prov + "Agent");
-		  Resource Activity = _model.getResource(prov+"Activity");
-		  Resource Entity = _model.getResource(prov+"Entity");
+		  Resource Agent = _model.getResource(WeProvOnt.Agent);
+		  Resource Activity = _model.getResource(WeProvOnt.Activity);
+		  Resource Entity = _model.getResource(WeProvOnt.Entity);
 		  
-		  Resource Workflow = _model.getResource(provone+"Workflow");
-		  Resource Program = _model.getResource(provone+"Program");
-		  Resource Model = _model.getResource(weprov+"Model");
-		  Resource Port = _model.getResource(provone+"Port");
-		  Resource Channel = _model.getResource(provone+"Channel");
-		  Resource Controller = _model.getResource(provone+"Controller");
+		  Resource Workflow = _model.getResource(WeProvOnt.Workflow);
+		  Resource Program = _model.getResource(WeProvOnt.Program);
+		  Resource Model = _model.getResource(WeProvOnt.Model);
+		  Resource Port = _model.getResource(WeProvOnt.Port);
+		  Resource Channel = _model.getResource(WeProvOnt.Channel);
+		  Resource Param = _model.getResource(WeProvOnt.Param);
+		  Resource Controller = _model.getResource(WeProvOnt.Controller);
 		  	
 		  
 		//Property Declaration
 
 			//General Properties
-			Property rdfTypeProperty = _model.getProperty(rdf+"type");
+			Property rdfTypeProperty = _model.getProperty(WeProvOnt.rdfType);
+			Property title = _model.getProperty(WeProvOnt.title);
+			Property description = _model.getProperty(WeProvOnt.description);
 				
 			// Associations
 			
-			Property hasSubProgram = _model.getProperty(provone+"hasSubProgram");
-			Property hasInPort = _model.getProperty(provone+"hasInPort");
-			Property hasOutPort = _model.getProperty(provone+"hasOutPort");
-			Property host = _model.getProperty(weprov+"host");
-			Property connectsTo = _model.getProperty(provone+"connectsTo");
-			Property hasDefaultParam = _model.getProperty(provone+"hasDefaultParam");
-			Property controlledBy = _model.getProperty(provone+"controlledBy");
-			Property controls = _model.getProperty(provone+"controls");
+			Property hasSubProgram = _model.getProperty(WeProvOnt.hasSubProgram);
+			Property hasInPort = _model.getProperty(WeProvOnt.hasInPort);
+			Property hasOutPort = _model.getProperty(WeProvOnt.hasOutPort);
+			Property host = _model.getProperty(WeProvOnt.host);
+			Property connectsTo = _model.getProperty(WeProvOnt.connectsTo);
+			Property hasDefaultParam = _model.getProperty(WeProvOnt.hasDefaultParam);
+			Property controlledBy = _model.getProperty(WeProvOnt.controlledBy);
+			Property controls = _model.getProperty(WeProvOnt.controls);
 			
-			
-			
-			Property agent = _model.getProperty(prov+"agent");
-			Property entity = _model.getProperty(prov+"entity");
-			Property activity = _model.getProperty(prov+"activity");
+			Property agent = _model.getProperty(WeProvOnt.agent);
+			Property entity = _model.getProperty(WeProvOnt.entity);
+			Property activity = _model.getProperty(WeProvOnt.activity);
 			
 			// Properties
-			Property value = _model.getProperty(prov+"value");
-			Property label = _model.getProperty(rdfs+"label");
-			Property foafname = _model.getProperty(foaf+"name");
+			Property value = _model.getProperty(WeProvOnt.value);
+			Property label = _model.getProperty(WeProvOnt.label);
+			Property foafname = _model.getProperty(WeProvOnt.foafname);
+			
+			
 			
 		//Parse the JSON object
 		
@@ -79,7 +75,7 @@ public class SpecificationProvenance{
 		
 		//Add this detail to the model
 		
-		Resource workflowInstance = _model.getResource(wedata+"workflow/"+_workflowId);
+		Resource workflowInstance = _model.getResource(WeProvData.workflow+_workflowId);
 		workflowInstance.addProperty(rdfTypeProperty, Workflow);
 		workflowInstance.addProperty(label, _model.createLiteral(_workflowId));	
 		
@@ -96,7 +92,7 @@ public class SpecificationProvenance{
 			 * Generate RDF for Program details
 			 **/
 			
-			Resource programInstance = _model.getResource(wedata+"program/"+_programId); 
+			Resource programInstance = _model.getResource(WeProvData.program+_programId); 
 					
 			//add properties
 			programInstance.addProperty(rdfTypeProperty, Program); //declare type of program
@@ -113,7 +109,7 @@ public class SpecificationProvenance{
 				 * Generate RDF for Model of Program
 				 **/
 				
-				Resource modelInstance = _model.getResource(wedata+"model/"+_modelId); 
+				Resource modelInstance = _model.getResource(WeProvData.model+_modelId); 
 				
 				//add properties
 				modelInstance.addProperty(rdfTypeProperty, Model); //declare type of model
@@ -136,7 +132,7 @@ public class SpecificationProvenance{
 					
 					//Add Inports first
 					
-					Resource portInstance = _model.getResource(wedata+"port/"+_programId+"_"+_inPortId); 
+					Resource portInstance = _model.getResource(WeProvData.port+_programId+"_"+_inPortId); 
 					
 					//add properties
 					portInstance.addProperty(rdfTypeProperty, Port); //declare type of Port
@@ -148,7 +144,7 @@ public class SpecificationProvenance{
 					if(_inport.has("channel")) {
 						String inPortChannel = _inport.getString("channel");					
 						//Now Add Channel
-						Resource channelInstance = _model.getResource(wedata+"channel/"+inPortChannel); 
+						Resource channelInstance = _model.getResource(WeProvData.channel+inPortChannel); 
 						channelInstance.addProperty(rdfTypeProperty, Channel);
 						channelInstance.addProperty(label, _model.createLiteral(inPortChannel));
 						
@@ -163,8 +159,9 @@ public class SpecificationProvenance{
 							String _paramId = _param.getString("paramId");
 							String _paramValue = _param.getString("paramValue");
 							
-							Resource paramInstance = _model.getResource(wedata+"param/"+_paramId); 
+							Resource paramInstance = _model.getResource(WeProvData.param+_paramId); 
 							paramInstance.addProperty(rdfTypeProperty, Entity);
+							paramInstance.addProperty(rdfTypeProperty, Param);
 							paramInstance.addProperty(label, _model.createLiteral(_paramId));
 							paramInstance.addProperty(value, _model.createLiteral(_paramValue));
 						
@@ -186,7 +183,7 @@ public class SpecificationProvenance{
 					
 					//Add Outports first
 					
-					Resource portInstance = _model.getResource(wedata+"port/"+_programId+"_"+_outPortId); 
+					Resource portInstance = _model.getResource(WeProvData.port+_programId+"_"+_outPortId); 
 					
 					//add properties
 					portInstance.addProperty(rdfTypeProperty, Port); //declare type of Port
@@ -196,7 +193,7 @@ public class SpecificationProvenance{
 					programInstance.addProperty(hasOutPort, portInstance);
 					
 					//Now Add Channel
-					Resource channelInstance = _model.getResource(wedata+"channel/"+ _outPortChannel); 
+					Resource channelInstance = _model.getResource(WeProvData.channel+ _outPortChannel); 
 					channelInstance.addProperty(rdfTypeProperty, Channel);
 					channelInstance.addProperty(label, _model.createLiteral(_outPortChannel));
 					
@@ -218,15 +215,15 @@ public class SpecificationProvenance{
 				String _sourcePort = _source.getString("port");
 				String _sourceProgram = _source.getString("program");
 				
-				Resource sourceProgramInstance = _model.getResource(wedata+"program/"+_sourceProgram); 
+				Resource sourceProgramInstance = _model.getResource(WeProvData.program+_sourceProgram); 
 				
 				JSONObject _target = _controller.getJSONObject("target");
 				String _targetPort = _target.getString("port");
 				String _targetProgram = _target.getString("program");
 				
-				Resource targetProgramInstance = _model.getResource(wedata+"program/"+_targetProgram); 
+				Resource targetProgramInstance = _model.getResource(WeProvData.program+_targetProgram); 
 				
-				Resource controllerInstance = _model.getResource(wedata+"controller/"+_sourceProgram+_sourcePort+"_"+_targetProgram+_targetPort);
+				Resource controllerInstance = _model.getResource(WeProvData.controller+_sourceProgram+_sourcePort+"_"+_targetProgram+_targetPort);
 				
 				controllerInstance.addProperty(rdfTypeProperty, Controller);
 				controllerInstance.addProperty(label, _model.createLiteral(_sourceProgram+"|"+_sourcePort+"|"+_targetProgram+"|"+_targetPort));

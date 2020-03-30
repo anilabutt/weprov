@@ -32,8 +32,7 @@ public class ProvenanceLogger extends GenericService {
 		
 		String response = "";
 		StringBuilder workflowBuilder = new StringBuilder();
-		
-		
+				
 		try {
 			
 			//get JSON string from input stream

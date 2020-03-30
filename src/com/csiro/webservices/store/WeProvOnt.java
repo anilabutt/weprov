@@ -9,17 +9,21 @@ public class WeProvOnt {
 	public static final String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 	public static final String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
 	public static final String foaf = "http://xmlns.com/foaf/0.1/";
+	public static final String dcterms="http://purl.org/dc/terms/";
 	
 	//Class declaration
 		
 		  public static final String Agent =  prov + "Agent" ;
 		  public static final String Activity =  prov+"Activity" ;
+		  public static final String Entity =  prov+"Entity" ;
 		  
 		  public static final String Workflow =  provone+"Workflow" ;
 		  public static final String Program =  provone+"Program" ;
 		  public static final String Model =  weprov+"Model" ;
 		  public static final String Port =  provone+"Port" ;
 		  public static final String Channel =  provone+"Channel" ;
+		  public static final String Param =  provone+"Param" ;
+		 
 		  public static final String Controller =  provone+"Controller" ;
 		  
 		  public static final String Invalidation =  prov+"Invalidation" ;
@@ -38,7 +42,9 @@ public class WeProvOnt {
 	  	//public static final String  Declaration
 
 		//General Properties
-		public static final String  rdfType  =  rdf+"type" ;
+		public static final String rdfType  =  rdf + "type" ;
+		public static final String description = dcterms + "description";
+		public static final String title = dcterms + "title";
 			
 		// Associations
 		
@@ -48,6 +54,7 @@ public class WeProvOnt {
 		public static final String  host =  weprov+"host" ;
 		public static final String  connectsTo =  provone+"connectsTo" ;
 		public static final String  hasDefaultParam =  provone+"hasDefaultParam" ;
+		public static final String  hasController =  weprov+"hasController" ;
 		public static final String  controlledBy =  provone+"controlledBy" ;
 		public static final String  controls =  provone+"controls" ;
 
@@ -75,9 +82,10 @@ public class WeProvOnt {
 					
 		// Properties
 		public static final String  workflowId =  weprov+"workflowId" ;
-		public static final String  versionId =  weprov+"versionId" ;
+		public static final String  version =  weprov+"version" ;
 		public static final String  programId =  weprov+"programId" ;
 		public static final String  modelId =  weprov+"modelId" ;
+		public static final String  location =  weprov+"location" ;
 		public static final String  portId =  weprov+"portId" ;
 		public static final String  channelId =  weprov+"channelId" ;
 		public static final String  paramId =  weprov+"paramId" ;
@@ -86,6 +94,7 @@ public class WeProvOnt {
 		public static final String  endedAtTime =  prov+"endedAtTime" ;
 		public static final String  value =  prov+"value" ;
 		public static final String  foafname = foaf+"name";
-		public static final String version = weprov+"version";
-
+		public static final String  label= rdfs+"label";
+		
+		public static final String  revision = weprov+"revision";
 }

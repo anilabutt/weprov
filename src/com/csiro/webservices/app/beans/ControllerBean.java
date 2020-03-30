@@ -1,8 +1,8 @@
 package com.csiro.webservices.app.beans;
 
 public class ControllerBean {
-	private ControllerConnection source;
-	private ControllerConnection target;
+	private ControllerConnection source= new ControllerConnection();
+	private ControllerConnection target= new ControllerConnection();
 	
 	public void setSource(ControllerConnection source) {
 		this.source =source;
