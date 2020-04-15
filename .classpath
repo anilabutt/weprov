@@ -74,5 +74,8 @@
 	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/gson-2.8.5.jar"/>
 	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/guava-28.1-jre.jar"/>
 	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/zjsonpatch-0.4.9.jar"/>
+	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/virt_jena-6.1.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/jena.jar"/>
+	<classpathentry kind="lib" path="C:/Users/but21c/eclipse-workspace/weprov/WebContent/WEB-INF/lib/virtjdbc3.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

@@ -3,10 +3,6 @@ package com.csiro.dataset;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.tdb.TDBFactory;
 import org.json.JSONException;
 
 import com.csiro.webservices.app.beans.ControllerBean;
@@ -15,12 +11,16 @@ import com.csiro.webservices.app.beans.Workflow;
 import com.csiro.webservices.config.Configuration;
 import com.csiro.webservices.store.WeProvData;
 import com.csiro.webservices.store.WeProvOnt;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
 
 
 public class TavernaRevisionProvenance{
 
 	// A temporary model to add rdf for this JSON
-	public Model _model = TDBFactory.createDataset().getDefaultModel();
+	public Model _model = ModelFactory.createDefaultModel();
 	
 	//Get Classes and Properties of weprov model
 	
@@ -65,7 +65,7 @@ public class TavernaRevisionProvenance{
 	public Model generateWorkflowRevisionRecords(Workflow cwId, Workflow pwId) {
 				
 		// A temporary model to add rdf for this JSON		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 				
 		Resource cWorkflow = _model.createResource(WeProvData.workflow + cwId.getWorkflowId()+"-"+cwId.getRevisionId());
 		Resource pWorkflow = _model.createResource(WeProvData.workflow + pwId.getWorkflowId()+"-"+pwId.getRevisionId());
@@ -118,7 +118,7 @@ public class TavernaRevisionProvenance{
 	public Model generateRenameRecords(Workflow cwId, Workflow pwId, String property) {
 		
 		// A temporary model to add rdf for this JSON		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		
 		
 		Resource _modification = _model.getResource(WeProvData.modification+cwId.getRevisionId()+"/"+cwId.getWorkflowId());
@@ -155,7 +155,7 @@ public class TavernaRevisionProvenance{
 	public Model generatePortInvalidationRecords(Workflow cwId, Workflow pwId, String name) {
 		
 		// A temporary model to add rdf for this JSON		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		
 		Resource uri = _model.getResource(WeProvData.port+ cwId.getWorkflowId() + "/" + name); 
 		
@@ -175,7 +175,7 @@ public class TavernaRevisionProvenance{
     public Model generateProgramInvalidationRecords(Workflow cwId, Workflow pwId, String name) {
 		
 		// A temporary model to add rdf for this JSON		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		
 		Resource uri = _model.getResource(WeProvData.program + name); 
 		
@@ -195,7 +195,7 @@ public class TavernaRevisionProvenance{
     public Model generateControllerInvalidationRecords(Workflow cwId, Workflow pwId, ControllerBean controller) {
 		
 		// A temporary model to add rdf for this JSON		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		 
 		ControllerConnection _source = controller.getSource();
 		String _sourcePort = _source.getPortId();
@@ -238,7 +238,7 @@ public class TavernaRevisionProvenance{
     public Model generatePortGenerationRecords(Workflow cwId, Workflow pwId, String name) {
 		
 		// A temporary model to add rdf for this JSON		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		
 		Resource uri = _model.getResource(WeProvData.port+ cwId.getWorkflowId() + "/" + name); 
 		
@@ -258,7 +258,7 @@ public class TavernaRevisionProvenance{
     public Model generateProgramGenerationRecords(Workflow cwId, Workflow pwId, String name) {
 		
 		// A temporary model to add rdf for this JSON		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		
 		Resource uri = _model.getResource(WeProvData.program + name); 
 		
@@ -278,7 +278,7 @@ public class TavernaRevisionProvenance{
     public Model generateControllerGenerationRecords(Workflow cwId, Workflow pwId, ControllerBean controller) {
 		
 		// A temporary model to add rdf for this JSON		
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		 
 		ControllerConnection _source = controller.getSource();
 		String _sourcePort = _source.getPortId();

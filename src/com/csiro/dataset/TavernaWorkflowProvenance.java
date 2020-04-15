@@ -2,12 +2,6 @@ package com.csiro.dataset;
 
 import java.util.ArrayList;
 
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.tdb.TDBFactory;
-
-
 import com.csiro.webservices.app.beans.ControllerBean;
 import com.csiro.webservices.app.beans.ControllerConnection;
 import com.csiro.webservices.app.beans.PortBean;
@@ -17,12 +11,16 @@ import com.csiro.webservices.config.Configuration;
 import com.csiro.webservices.evolution.listener.WorkflowListener;
 import com.csiro.webservices.store.WeProvData;
 import com.csiro.webservices.store.WeProvOnt;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.Model;
 
 public class TavernaWorkflowProvenance{
 	
 	// A temporary model to add rdf for this JSON
 	
-	public Model _model = TDBFactory.createDataset().getDefaultModel();
+	public Model _model = ModelFactory.createDefaultModel();
 	//Get Classes and Properties of weprov model
 	
 	  Resource Agent = _model.getResource(WeProvOnt.Agent);
@@ -178,7 +176,8 @@ public class TavernaWorkflowProvenance{
 				portInstance.addProperty(label, _model.createLiteral(_outPortId)); // add port id	
 						
 				//add associations
-				workflowInstance.addProperty(hasOutPort, portInstance);
+				workflowInstance.addProperty(hasOutPort, portInstance);	
+				//workflowInstance.addProperty(hasOutPort, portInstance);
 				
 			}
 		}

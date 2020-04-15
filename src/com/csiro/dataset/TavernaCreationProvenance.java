@@ -4,15 +4,6 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetFormatter;
-import org.apache.jena.query.Syntax;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.tdb.TDBFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,6 +11,10 @@ import org.json.JSONObject;
 import com.csiro.webservices.config.Configuration;
 import com.csiro.webservices.store.WeProvData;
 import com.csiro.webservices.store.WeProvOnt;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
 
 
 public class TavernaCreationProvenance{
@@ -34,7 +29,7 @@ public class TavernaCreationProvenance{
 
 		
 		//System.out.println("entityId : " + entityId);
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 				
 		//Get Classes and Properties of weprov model
 		

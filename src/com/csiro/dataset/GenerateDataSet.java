@@ -8,10 +8,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.apache.jena.rdf.model.Model;
 import org.json.JSONException;
 
 import com.csiro.webservices.app.beans.Workflow;
+import com.hp.hpl.jena.rdf.model.Model;
 
 public class GenerateDataSet {
    

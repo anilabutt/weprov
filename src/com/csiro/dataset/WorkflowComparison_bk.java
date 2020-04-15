@@ -3,9 +3,6 @@ package com.csiro.dataset;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.tdb.TDBFactory;
 import org.json.JSONException;
 
 import com.csiro.webservices.app.beans.ControllerBean;
@@ -13,13 +10,15 @@ import com.csiro.webservices.app.beans.PortBean;
 import com.csiro.webservices.app.beans.ProgramBean;
 import com.csiro.webservices.app.beans.Workflow;
 import com.csiro.webservices.logic.RevisionProvenance;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 public class WorkflowComparison_bk {
 	
 
 	public boolean compareWorkflow(Workflow w1, Workflow w2) throws JSONException {
 		TavernaRevisionProvenance rp = new TavernaRevisionProvenance();
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		
 		System.out.println("************************************************************************");
 		
@@ -422,7 +421,7 @@ public class WorkflowComparison_bk {
 		
 		boolean comparison = false; 
 		//System.out.println("***" + p1.getProgramId() + "	" + p2.getProgramId() + "***"  );
-		Model model= TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		
 		if(p1.getType()=="workflow" && p2.getType()=="workflow") {
 			if(p1.getProgramId().equalsIgnoreCase(p2.getProgramId()) ){

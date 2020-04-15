@@ -63,6 +63,15 @@ public class Workflow extends ProvenanceLogger{
 		return addWorkflowProvenance(incomingData);
 	}
 
+	
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	public String sayHtmlHello() {
+		return "<html> " + "<title>" + "Hello World RESTful Jersey"
+				+ "</title>" + "<body><h1>" + "Hello World RESTful Jersey"
+				+ "</body></h1>" + "</html> ";
+	}
+	
 	/**
 	 * Service to describe a particular Course   
 	 * @param courseId of person

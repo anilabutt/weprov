@@ -1,4 +1,3 @@
-package com.csiro.dataset;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15,29 +14,43 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.csiro.dataset.TavernaCreationProvenance;
+import com.csiro.dataset.TavernaWorkflowProvenance;
+import com.csiro.dataset.WorkflowComparison;
+import com.csiro.dataset.WorkflowProvenance;
 import com.csiro.webservices.app.beans.ControllerBean;
 import com.csiro.webservices.app.beans.ControllerConnection;
 import com.csiro.webservices.app.beans.PortBean;
 import com.csiro.webservices.app.beans.ProgramBean;
 import com.csiro.webservices.app.beans.Workflow;
+import com.csiro.webservices.store.QuadStore;
+import com.csiro.webservices.store.WeProvOnt;
+import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 
+import virtuoso.jena.driver.VirtGraph;
+import virtuoso.jena.driver.VirtModel;
 
-public class TavernaWorkflowParser {
+
+public class XmlParser {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		try {
-		     String inputFilePath = "C:\\Users\\but21c\\eclipse-workspace\\weprov\\src\\taverna_workflow.txt";
-		     String inputFilePath2 = "C:\\Users\\but21c\\eclipse-workspace\\weprov\\src\\taverna_workflow2.txt";
+			
+			String file = "sample_workflow.txt";
+			
+			Workflow workflow =getWorkflow(file, "");
+		     //String inputFilePath = "C:\\Users\\but21c\\eclipse-workspace\\weprov\\src\\taverna_workflow.txt";
+		     //String inputFilePath2 = "C:\\Users\\but21c\\eclipse-workspace\\weprov\\src\\taverna_workflow2.txt";
 		     
-		      String filepath = "C:\\Users\\but21c\\Dropbox\\CSIRO_Postdoc\\CSIRO_Papers\\EvolutionModelling\\dataset\\workflow1\\workflow\\_deprecated__Probabilistic_Model_Checking__PMC___compute_results-v1.xml";
+		      //String filepath = "C:\\Users\\but21c\\Dropbox\\CSIRO_Postdoc\\CSIRO_Papers\\EvolutionModelling\\dataset\\workflow1\\workflow\\_deprecated__Probabilistic_Model_Checking__PMC___compute_results-v1.xml";
 
 		    // Workflow workflow1 = getWorkflow(inputFilePath, "2");
-		     Workflow workflow2 = getWorkflow(inputFilePath2, "1");
+		     //Workflow workflow2 = getWorkflow(inputFilePath2, "1");
 		     
-		     printThisWorkflow(workflow2);
+		   //  printThisWorkflow(workflow);
 		     
 		     
 		    // Workflow workflow = getWorkflow(filepath, "1");
@@ -56,10 +69,22 @@ public class TavernaWorkflowParser {
 		     
 		     //getSpecProvenance
 		     
-		       /*Model specModel = 	getWorkflowSpecificationProvenance(workflow1);
-		       specModel.write(System.out, "TTL");
-		     	*/	   
-		     
+			List<Triple> specTripleList = getWorkflowSpecificationProvenance(workflow);
+		    System.out.println(specTripleList.size());   
+			QuadStore.getDefaultStore().insertSpecs(specTripleList);
+			
+			TavernaWorkflowProvenance prov = new TavernaWorkflowProvenance();
+			
+			Model model = prov.generateSpecificationRDF(workflow, null);
+		      
+			//VirtGraph vgraph = new VirtGraph();
+			VirtModel vmodel = VirtModel.openDatabaseModel("http://weprov.csiro.au/","jdbc:virtuoso://localhost:1111", "dba", "dba" );
+			
+			vmodel.add(model);
+			
+			vmodel.close();
+			
+			// specModel.list
 		     //getCreationProvenance
 		     
 		       // Model model = getWorkflowCreationProvenance(workflow);
@@ -159,46 +184,38 @@ public class TavernaWorkflowParser {
 	    		 }*/
 	    		 
 	    		 
-	    		 if (nodeTag.contains("description")) {	    			 
-	    			   
-	    			 
-	    			 String workflowId = node.getAttributes().getNamedItem("lsid").getTextContent();
+	    		 if (nodeTag.contains("description")) {	    			 	    			 
+	    			 String workflowId = node.getAttributes().getNamedItem("id").getTextContent();
 	    			// workflowId = workflowId+"-v"+revision;
 	    			 workflow.setWorkflowId(workflowId);
-	    			// System.out.println("Workflow Id : " + workflowId);
+	    			 //System.out.println("Workflow Id : " + workflowId);
 	    			 
 	    			 String workflowTitle = node.getAttributes().getNamedItem("title").getTextContent();
 	    			 workflow.setWorkflowTitle(workflowTitle);
-	    			// System.out.println("Workflow Title : " + workflowTitle);
+	    			 //System.out.println("Workflow Title : " + workflowTitle);
 	    			 
 	    			 String author = node.getAttributes().getNamedItem("author").getTextContent();
 	    			 workflow.setAuthor(author);
-	    			// System.out.println("Workflow Author : " + author);
+	    			 //System.out.println("Workflow Author : " + author);
 	    			 
 	    			 String workflowDescription = firstNodeList.item(1).getTextContent();
 	    			 workflow.setWorkflowDescription(workflowDescription);
-	    			// System.out.println("Workflow Description: " + workflowDescription);
+	    			 //System.out.println("Workflow Description: " + workflowDescription);
 	    			 
 	    			 
 	    		 }  
-	    		 
-	    		 if(nodeTag.contains("location")) {
-	    			 String workflowDescription = firstNodeList.item(1).getTextContent();
-	    			 workflow.setWorkflowDescription(workflowDescription);
-	    			// System.out.println("Workflow Description: contains location " + workflowDescription);
-	    		 }
-	    		 
+
 	    		 /************ 
 	    		  * Add input(ports) of this workflow
 	    		  ************/
 	    		 
-	    		 if (nodeTag.contains("source")) {
+	    		 if (nodeTag.contains("inport")) {
 	    			 String input = node.getAttributes().getNamedItem("name").getTextContent();
 	    			 PortBean inport = new PortBean();
 	    			 inport.setPortId(input);
 	    			 inputs.add(inport);
-	    			 //System.out.println("inputs:	" + inputs);
-	    		 } if (nodeTag.contains("sink")) {
+	    			 //System.out.println("inputs:	" + input);
+	    		 } if (nodeTag.contains("outport")) {
 	    			 String output = node.getAttributes().getNamedItem("name").getTextContent();
 	    			 PortBean outport = new PortBean();
 	    			 outport.setPortId(output);
@@ -210,15 +227,15 @@ public class TavernaWorkflowParser {
 	    		  * Add programs of this workflow 
 	    		  ************/
 	    		 
-	    		 if (nodeTag.contains("processor")) {
+	    		 if (nodeTag.contains("program")) {
 
 	    			 ProgramBean program = new ProgramBean();
 	    			 String name = node.getAttributes().getNamedItem("name").getTextContent();
 	    			 program.setProgramId(name);
-	    			 //System.out.println(name);
+	    			 //System.out.println("Program name : " + name);
 	    			 
 	    			 Element processorElement = (Element)node;
-	    			// System.out.println(" childElement :  " + processorElement);
+	    			 //System.out.println(" childElement :  " + processorElement);
 	    			 
 	    			 org.w3c.dom.NodeList processorChildList = processorElement.getChildNodes();
 	    			 
@@ -233,50 +250,19 @@ public class TavernaWorkflowParser {
 	    		    		 String childNodeTag = childNode.getNodeName();
 	    		    		 
 	    		    		 //String newName = tab + name;
-	    		    		 if(childNodeTag.equalsIgnoreCase("s:workflow")) {
+	    		    		 if(childNodeTag.equalsIgnoreCase("ds:workflow")) {
 	    		    			program.setType("workflow");
 	    		    			 //System.out.println(newName);	    		    			 
-	    		    			NodeList sculfChild = childNode.getChildNodes();	    		    			
+	    		    			NodeList child = childNode.getChildNodes();	    		    			
 	    		    			
-	    		    			for (int k=0; k < sculfChild.getLength(); k++) {
+	    		    			for (int k=0; k < child.getLength(); k++) {
 	    		    				
-	    		    				if(sculfChild.item(k).getNodeName().contains("scufllocation")) {
-	    		    					Workflow processWorkflow = new Workflow();
-	    		    					processWorkflow.setWorkflowLocation(sculfChild.item(k).getTextContent());
-	    		    					String title[] = sculfChild.item(k).getTextContent().split("\\/");
-	    		    					processWorkflow.setWorkflowId(title[title.length-1]);
-	    		    					program.setWorkflow(processWorkflow);
-	    		    					//System.out.println("        " +sculfChild.item(k).getTextContent() );
-	    		    				} else if(sculfChild.item(k).getNodeName().contains("scufl") ) { 
-	    		    					Workflow processWorkflow = getComponentsOfThisWorkflow(sculfChild.item(k), name, revision); 
+	    		    				if(child.item(k).getNodeName().contains("weprov") ) { 
+	    		    					Workflow processWorkflow = getComponentsOfThisWorkflow(child.item(k), name, revision); 
 	    		    					program.setWorkflow(processWorkflow);
 	    		    				}
 	    		    			}
-	    		    		 } else if(childNodeTag.equalsIgnoreCase("s:beanshell")) {
-	    		    			 program.setType("beanshell");
-	    		    			 //System.out.println(newName + " is a beanshell");
-	    		    		 } else if(childNodeTag.equalsIgnoreCase("s:stringconstant")) {
-	    		    			 program.setType("stringconstant");
-	    		    			//System.out.println(newName + " is a stringconstant");
-	    		    		 } else if (childNodeTag.equalsIgnoreCase("s:arbitrarywsdl")){
-	    		    			 program.setType("arbitrarywsdl");
-	    		    			 //System.out.println(newName + " is a arbitrarywsdl ");
-	    		    		 } else if (childNodeTag.equalsIgnoreCase("s:wsdl")){
-	    		    			 program.setType("wsdl");
-	    		    			 //System.out.println(newName + " is a arbitrarywsdl ");
-	    		    		 } else if (childNodeTag.equalsIgnoreCase("s:local")){
-	    		    			 program.setType("local");
-	    		    			 //System.out.println(newName + " is a local ");
-	    		    		 } else if (childNodeTag.equalsIgnoreCase("s:localworker")){
-	    		    			 program.setType("localworker");
-	    		    			 //System.out.println(newName + " is a local ");
-	    		    		 } else if (childNodeTag.equalsIgnoreCase("s:biomart")){
-	    		    			 program.setType("biomart");
-	    		    			 //System.out.println(newName + " is a local ");
-	    		    		 } else if (childNodeTag.equalsIgnoreCase("s:soaplab")){
-	    		    			 program.setType("soaplab");
-	    		    			 //System.out.println(newName + " is a local ");
-	    		    		 }
+	    		    		 } 
 	    		    	}
 	    			 }
 	    			 programs.add(program);
@@ -285,9 +271,9 @@ public class TavernaWorkflowParser {
 	    		 /************ 
 	    		  * Add links of this workflow 
 	    		  ************/
-	    		 if (nodeTag.contains("link")) {
+	    		 if (nodeTag.contains("controller")) {
 	    			 String source = node.getAttributes().getNamedItem("source").getTextContent();
-	    			 String sink = node.getAttributes().getNamedItem("sink").getTextContent();
+	    			 String sink = node.getAttributes().getNamedItem("target").getTextContent();
 	    			 
 	    			 ControllerBean controller = new ControllerBean();
 	    			 ControllerConnection linkSource = new ControllerConnection();	
@@ -337,12 +323,12 @@ public class TavernaWorkflowParser {
 		 return workflow;
 	}
 	
-	public static Model getWorkflowSpecificationProvenance (Workflow workflow) throws JSONException {
+	public static List<Triple> getWorkflowSpecificationProvenance (Workflow workflow) throws JSONException {
 				
-		TavernaWorkflowProvenance prov = new TavernaWorkflowProvenance();
-		Model model = prov.generateSpecificationRDF(workflow, null);	
+		WorkflowProvenance prov = new WorkflowProvenance();
+		List<Triple> triples = prov.generateSpecificationRDF(workflow, null);	
 		
-		return model;
+		return triples;
 	}
 	
 	public static Model getWorkflowCreationProvenance (Workflow workflow) throws JSONException {

@@ -19,6 +19,18 @@ import java.util.logging.Logger;
  */
 public class Configuration {
 	
+	/** Property key for virtuoso instance */
+	public static final String VIRTUOSO_INSTANCE = "virtuoso.instance";
+	
+	/** Property key for virtuoso port */
+	public static final String VIRTUOSO_PORT = "virtuoso.port";
+	
+	/** Property key for virtuoso username */
+	public static final String VIRTUOSO_USERNAME = "virtuoso.username";
+	
+	/** Property key for virtuoso password */
+	public static final String VIRTUOSO_PASSWORD = "virtuoso.password";
+	
 	/** Namespace for WEPROV */
 	public static final String NS_WEPROV = "http://purl.org/ontology/weprov#";
 

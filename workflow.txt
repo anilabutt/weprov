@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ds:weprov xmlns:ds="http://www.csiro.au/digiscape/" version="0.1">
+    <ds:workflowdescription id="workflow_id" author="author name" title="workflow_title"> 
+    	Here you can provide the description of the workflow. 
+    </ds:workflowdescription>
+    <ds:program name="program name">
+        <ds:description> This is a simple program</ds:description>
+    </ds:program>
+    <ds:program name="program name">
+        <ds:description> This is a special program that itself is a workflow </ds:description>
+        <ds:workflow>
+            <ds:weprov version="0.1">
+            	<ds:workflowdescription id="nested workflow id" author="workflow author" title="workflow title"> This is a sub workflow in the program
+            	</ds:workflowdescription>
+            </ds:weprov>
+        </ds:workflow>
+    </ds:program>
+    <ds:controller source="program:outport" target="program:inport" />
+    <ds:inport name="input name">
+        <ds:description> This is an input to the workflow </ds:description>
+    </ds:inport>
+    <ds:outport name="outport name">
+        <ds:description> This is an output to the workflow</ds:description>
+    </ds:outport>
+</ds:weprov>

@@ -3,12 +3,6 @@ package com.csiro.dataset;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.ResIterator;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.tdb.TDBFactory;
 import org.json.JSONException;
 
 import com.csiro.webservices.app.beans.ControllerBean;
@@ -18,9 +12,16 @@ import com.csiro.webservices.app.beans.Workflow;
 import com.csiro.webservices.logic.RevisionProvenance;
 import com.csiro.webservices.store.WeProvData;
 import com.csiro.webservices.store.WeProvOnt;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.ResIterator;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
+import com.hp.hpl.jena.rdf.model.Statement;
 
 public class WorkflowComparison {
-	public Model provModel  = TDBFactory.createDataset().getDefaultModel();
+	public Model provModel  = ModelFactory.createDefaultModel();
 	 public Property rdfTypeProperty = provModel.getProperty(WeProvOnt.rdfType);
 	 public Resource Revision = provModel.getResource(WeProvOnt.Revision);
 	 public Property wasPartOf = provModel.getProperty(WeProvOnt.wasPartOf);
@@ -35,7 +36,7 @@ public class WorkflowComparison {
 
 	public Model compareWorkflow(Workflow w1, Workflow w2) throws JSONException {
 		TavernaRevisionProvenance rp = new TavernaRevisionProvenance();
-		Model _model = TDBFactory.createDataset().getDefaultModel();
+		Model _model = ModelFactory.createDefaultModel();
 		Resource _revision = _model.getResource(WeProvData.revision + w1.getRevisionId()+ "/" + w1.getWorkflowId() );
 		
 		System.out.println("************************************************************************");
@@ -435,7 +436,7 @@ public class WorkflowComparison {
 		
 		boolean comparison = false; 
 		//System.out.println("***" + p1.getProgramId() + "	" + p2.getProgramId() + "***"  );
-		Model model= TDBFactory.createDataset().getDefaultModel();
+		Model model= ModelFactory.createDefaultModel();
 		Resource revision = model.createResource(revisionId);
 		
 		if(p1.getType()=="workflow" && p2.getType()=="workflow") {
@@ -448,7 +449,8 @@ public class WorkflowComparison {
 				if(stmt.hasNext()) {
 					ResIterator rs = model.listSubjectsWithProperty(rdfTypeProperty, Revision); 
 					while (rs.hasNext()) {
-						provModel.add(rs.next(), wasPartOf, revision);
+						Resource res = rs.nextResource();
+						provModel.add(res, wasPartOf, revision);
 					}
 					
 				}  else {comparison=true;}
@@ -461,7 +463,7 @@ public class WorkflowComparison {
 					if(stmt.hasNext()) {
 						ResIterator rs = model.listSubjectsWithProperty(rdfTypeProperty, Revision); 
 						while (rs.hasNext()) {
-							provModel.add(rs.next(), wasPartOf, revision);
+							provModel.add(rs.nextResource(), wasPartOf, revision);
 						}
 					}  else {comparison=true;}
 				}
