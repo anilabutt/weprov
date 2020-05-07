@@ -20,6 +20,7 @@ import com.hp.hpl.jena.query.ResultSet;
 
 import virtuoso.jena.driver.VirtGraph;
 import virtuoso.jena.driver.VirtInfGraph;
+import virtuoso.jena.driver.VirtModel;
 import virtuoso.jena.driver.VirtuosoQueryExecution;
 import virtuoso.jena.driver.VirtuosoQueryExecutionFactory;
 import virtuoso.jena.driver.VirtuosoUpdateFactory;
@@ -40,13 +41,13 @@ public class QuadStore {
 	private Logger logger;
 	
 	/** Virtuoso graph for the ontology*/
-	private VirtGraph  metamodel = null;
+	private VirtModel  metamodel = null;
 	
-	private VirtGraph specmodel = null;
+	private VirtModel specmodel = null;
 	
-	private VirtGraph evomodel = null;
+	private VirtModel evomodel = null;
 	
-	private VirtGraph execmodel= null;
+	private VirtModel execmodel= null;
 	
 	private VirtGraph connection = null;
 	
@@ -87,77 +88,76 @@ public class QuadStore {
 		connection = new VirtGraph("jdbc:virtuoso://localhost:1111", "dba", "dba");
 
 		String ontologyprofix = Configuration.getProperty(Configuration.PREFIX_WEPROV);
-		metamodel = new VirtGraph(ontologyprofix, connectionURL, username , password );
+		metamodel = VirtModel.openDatabaseModel(ontologyprofix, connectionURL, username , password );
 		
 		String specsprofix = Configuration.getProperty(Configuration.PREFIX_DATA);
 		
 		System.out.println(specsprofix);
-		specmodel = new VirtGraph(specsprofix, connectionURL, username , password );
+		specmodel = VirtModel.openDatabaseModel(specsprofix, connectionURL, username , password );
 		
-		//String evoprofix = Configuration.getProperty(Configuration.PREFIX_EVODATA);
-		//evomodel = new VirtGraph(evoprofix, connectionURL, username , password );
+		String evoprofix = Configuration.getProperty(Configuration.PREFIX_EVODATA);
+		evomodel = VirtModel.openDatabaseModel(evoprofix, connectionURL, username , password);
 		
-		//String execprofix = Configuration.getProperty(Configuration.PREFIX_DATA);
-		//execmodel = new VirtGraph(execprofix, connectionURL, username , password );
+		String execprofix = Configuration.getProperty(Configuration.PREFIX_DATA);
+		execmodel = VirtModel.openDatabaseModel(execprofix, connectionURL, username , password);
 		
 		
-		//connection = new VirtGraph(connectionURL, username , password );
-		
-		logger.info("Connection establised . . . " +connection.getCount());	
+		//connection = new VirtGraph(connectionURL, username , password );		
+		//logger.info("Connection establised . . . " +connection.getCount());	
 	}
 	
 	//insert triples into a graph	
-	private void insert(List<Triple> triple, VirtGraph graph) {
+	private void insert(Model _model, VirtModel model) {
 		try {
-			logger.info("triple list size " + triple.size());			
-			graph.getBulkUpdateHandler().add(triple);
+			logger.info("triple list size " + model.size());			
+			model.add(_model);
             logger.info("Triple loaded successfully");			
 		} catch (Exception e) {
 			logger.severe("Error[" + e + "]");
 		}
 	}
 	
-	public void insertOntology(List<Triple> triple) {
-		this.insert(triple, metamodel);
+	public void insertOntology(Model model) {
+		this.insert(model, metamodel);
 	}
 	
-	public void insertSpecs(List<Triple> triples) {
-		this.insert(triples, specmodel);
+	public void insertSpecs(Model model) {
+		this.insert(model, specmodel);
 	}
 	
-	public void insertEvol(List<Triple> triple) {
-		this.insert(triple, evomodel);
+	public void insertEvol(Model model) {
+		this.insert(model, evomodel);
 	}
 	
-	public void insertExec(List<Triple> triple) {
-		this.insert(triple, execmodel);
+	public void insertExec(Model model) {
+		this.insert(model, execmodel);
 	}
 
 
-	//delete triples into a graph	
-	private void delete(List<Triple> triples, VirtGraph graph) {
+	//delete this model from virtmode
+	private void delete(Model _model, VirtModel model) {
 			try {
-				graph.remove(triples);
+				model.remove(_model);
 	            logger.info("Triple deleted successfully");			
 			} catch (Exception e) {
 				logger.severe("Error[" + e + "]");
 			}
 		}
 	
-	public void deleteOntology(List<Triple> triple) {
-		this.delete(triple, metamodel);
+	public void deleteOntology(Model model) {
+		this.delete(model, metamodel);
 	}
 	
-	public void deleteSpecs(List<Triple> triple) {
-		this.delete(triple, specmodel);
+	public void deleteSpecs(Model model) {
+		this.delete(model, specmodel);
 	}
 	
-	public void deleteEvol(List<Triple> triple) {
-		this.delete(triple, evomodel);
+	public void deleteEvol(Model model) {
+		this.delete(model, evomodel);
 	}
 	
-	public void deleteExec(List<Triple> triple) {
-		this.delete(triple, execmodel);
+	public void deleteExec(Model model) {
+		this.delete(model, execmodel);
 	}
 
 	
@@ -171,7 +171,7 @@ public class QuadStore {
 	 * @throws RepositoryException 
 	 */
    	public Model execConstruct(String query) {
-   		VirtGraph connection = new VirtGraph("jdbc:virtuoso://localhost:1111", "dba", "dba");
+   		//VirtGraph connection = new VirtGraph("jdbc:virtuoso://localhost:1111", "dba", "dba");
    		VirtuosoQueryExecution vqe = VirtuosoQueryExecutionFactory.create (query, connection);
    		
    		Model _model = null;
@@ -179,36 +179,55 @@ public class QuadStore {
         try {
         	_model = vqe.execConstruct();
         } catch (Exception exp) {
-        		logger.info("Can't process describe query because of "+exp);
+        		logger.info("Can't process construct query because of "+exp);
         } finally {
         	vqe.close();
         	}
         return _model;
    	}
    	
+   	
+   	/**
+	 * Executes given Graph type query
+	 *
+	 * @param query The SPARQL construct or describe query
+	 * @return The resulting graph as a string
+	 * @throws MalformedQueryException 
+	 * @throws RepositoryException 
+	 */
+   	public boolean execAsk(String query) {
+   		
+   		VirtuosoQueryExecution vqe = VirtuosoQueryExecutionFactory.create(query, connection);
+   		
+   	    boolean value = false;
+   	    logger.info("Query String : "+ query);
+        logger.info("Query parsed successfully");
+        try {
+        	value = vqe.execAsk();
+        } catch (Exception exp) {
+        		logger.info("Can't process ask query because of "+exp);
+        } finally {
+        	vqe.close();
+        	}
+        return value;
+   	}
+   	
+   	
    	public ResultSet execSelect(String query) {
+   		
    		logger.info(query);
    		
-   		VirtuosoQueryExecution vqe = VirtuosoQueryExecutionFactory.create (query, connection);
+   		VirtuosoQueryExecution vqe = VirtuosoQueryExecutionFactory.create(query, connection);
 
         logger.info("Query parsed successfully");
         
-   		ResultSet results =null;
+   		ResultSet results = null;
 
       try {
     	  results = vqe.execSelect();
     	  
     	  logger.info("Result Set contains :" + results.getResultVars().toString() + results.getRowNumber());
-    	  
-    	 /* while (results.hasNext()) {
-              QuerySolution result = results.nextSolution();
-              //  RDFNode graph = result.get("graph");
-              RDFNode s = result.get("s");
-              RDFNode p = result.get("p");
-              RDFNode o = result.get("o");
-              System.out.println( " { " + s + " " + p + " " + o + " . }");
-    	  	}*/
-    	  
+
       	  } catch (Exception exp) {
       		  logger.info("Can't process select query because of "+exp);
       	  } finally {

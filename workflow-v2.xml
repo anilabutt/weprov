@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ds:weprov xmlns:ds="http://www.csiro.au/digiscape/" version="0.1">
+    <ds:workflowdescription id="urn:lsid:net.sf.taverna:wfDefinition:618ac202-acf6-4695-bdc6-ca0078be3649" author="author name" title="BioAID_DiseaseDiscovery_RatHumanMouseUniprotFilter"> 
+    	Here you can provide the description of the workflow. 
+    </ds:workflowdescription>
+    <ds:program name="search_field">
+    </ds:program>
+    <ds:program name="Document_index">
+    </ds:program>
+    <ds:program name="CountProteins">
+    </ds:program>
+    <ds:program name="CountDiseases">
+    </ds:program>
+    <ds:program name="CountDiseasesPerProtein">
+    </ds:program>
+    <ds:program name="Retrieve_documents">
+        <ds:description> This is a special program that itself is a workflow </ds:description>
+        <ds:workflow>
+        <ds:weprov version="0.1">
+    	<ds:workflowdescription id="urn:lsid:net.sf.taverna:wfDefinition:dd1e2961-a1ca-4902-9bfb-2b776a4399ee" author="" title="Retrieve_bio_documents"> This is a sub workflow in the program
+    	</ds:workflowdescription>
+        <ds:program name="Biooptimize_query">
+        <ds:description> This is a special program that itself is a workflow </ds:description>
+        <ds:workflow>
+        <ds:weprov version="0.1">
+    	<ds:workflowdescription id="urn:lsid:net.sf.taverna:wfDefinition:3d2eebb7-0b04-4979-9aa9-3d39b1464216" author="" title="Lucene_bioquery_optimizer_MR1"> This is a sub workflow in the program
+    	</ds:workflowdescription>
+        <ds:program name="Prioritise_lucene_query"> </ds:program>
+        <ds:program name="Lucene_year_priorities"> </ds:program>
+        <ds:controller source="Lucene_year_priorities.value" target="Prioritise_lucene_query.priority_string" />
+        <ds:controller source="query_string" target="Prioritise_lucene_query.query_string" />
+        <ds:controller source="Prioritise_lucene_query.lucene_query" target="optimized_lucene_query" />
+        <ds:inport name="query_string" />
+        <ds:outport name="optimized_lucene_query"/>
+        </ds:weprov>
+        </ds:workflow>
+    </ds:program>
+    <ds:program name="Retrieve">
+        <ds:description> This is a special program that itself is a workflow </ds:description>
+        <ds:workflow>
+        <ds:weprov version="0.1">
+    	<ds:workflowdescription id="urn:lsid:net.sf.taverna:wfDefinition:858efe24-26c0-4090-be46-c9a5b4f21cad" author="workflow author" title="Retrieve_documents_MR1"> This is a sub workflow in the program
+    	</ds:workflowdescription>
+        <ds:program name="search1"> </ds:program>
+        <ds:controller source="document_index" target="search1.index" />
+        <ds:controller source="maxHits" target="search1.maxHits" />
+        <ds:controller source="queryString" target="search1.queryString" />
+        <ds:controller source="search_field" target="search1.defaultField" />
+        <ds:controller source="search1.searchReturn" target="relevant_documents" />
+        <ds:inport name="queryString" />
+        <ds:inport name="document_index" />
+        <ds:inport name="search_field" />
+        <ds:inport name="maxHits" />
+        <ds:outport name="relevant_documents"/>
+        </ds:weprov>
+        </ds:workflow>
+    </ds:program>
+    <ds:controller source="query_string" target="Biooptimize_query.query_string" />
+    <ds:controller source="Biooptimize_query.optimized_lucene_query" target="Retrieve.queryString" />
+    <ds:controller source="document_index" target="Retrieve.document_index" />
+    <ds:controller source="search_field" target="search1.defaultField" />
+    <ds:controller source="maxHits" target="Retrieve.maxHits" />
+    <ds:controller source="search_field" target="Retrieve.search_field" />
+    <ds:controller source="Retrieve.relevant_documents" target="relevant_documents" />
+    <ds:inport name="query_string" />
+    <ds:inport name="document_index" />
+    <ds:inport name="search_field" />
+    <ds:inport name="maxHits" />
+    <ds:outport name="relevant_documents"/>
+    </ds:weprov>
+    </ds:workflow>
+    </ds:program>   
+    <ds:program name="Discover_RatHumanMouseUniProt_proteins">
+        <ds:description> This is a special program that itself is a workflow </ds:description>
+        <ds:workflow>
+            <ds:weprov version="0.1">
+            <ds:workflowdescription id="urn:lsid:net.sf.taverna:wfDefinition:b4c1a118-6a38-40b5-99e9-febbd3c85f2b" author="workflow author" title="Discover_proteins"> This is a sub workflow in the program
+            </ds:workflowdescription>
+            <ds:program name="prelearned_genomics_model"> </ds:program>
+            <ds:program name="Discover_entities">
+                <ds:description> This is a special program that itself is a workflow </ds:description>
+                <ds:workflow>
+                <ds:weprov version="0.1">
+            	<ds:workflowdescription id="urn:lsid:net.sf.taverna:wfDefinition:e7ae8f2a-428f-4afd-93eb-52ccb89273e1" author="workflow author" title="Discover_entities"> This is a sub workflow in the program
+            	</ds:workflowdescription>
+                <ds:program name="NErecognize"> </ds:program>
+                <ds:program name="Default_input_type"> </ds:program>
+                <ds:program name="Default_output_type"> </ds:program>
+                <ds:controller source="input_from_lucene" target="NErecognize.input_data" />
+                <ds:controller source="learned_model" target="NErecognize.r_type" />
+                <ds:controller source="Default_input_type.value" target="NErecognize.input_type" />
+                <ds:controller source="Default_output_type.value" target="NErecognize.output_type" />
+                <ds:controller source="NErecognize.NErecognizeReturn" target="discovered_entities" />
+                <ds:inport name="input_from_lucene" />
+                <ds:inport name="learned_model" />
+                <ds:outport name="discovered_entities"/>
+            </ds:weprov>
+            </ds:workflow>
+            </ds:program>
+            <ds:program name="Extract_proteins">
+            <ds:description> This is a special program that itself is a workflow </ds:description>
+            <ds:workflow>
+            <ds:weprov version="0.1">
+            <ds:workflowdescription id="urn:lsid:net.sf.taverna:wfDefinition:df6063f9-b469-4d56-aecc-a62db4bcb3ad" author="workflow author" title="Extract_proteins"> This is a sub workflow in the program
+            </ds:workflowdescription>
+            <ds:program name="FilterTrueProteinByUniProtID"> </ds:program>
+            <ds:program name="Filter2"> </ds:program>
+            <ds:program name="Strip_xml"> </ds:program>
+            <ds:program name="UniProtOrNot"> </ds:program>
+            <ds:program name="Remove_duplicate_strings"> </ds:program>
+            <ds:program name="getUniprotID"> </ds:program>
+            <ds:program name="SplitOn_protein_molecule"> </ds:program>
+            <ds:program name="filter_protein_molecule_regexp"> </ds:program>
+            <ds:program name="splitOn_protein_molecule_regexp"> </ds:program>
+            <ds:program name="Filter1"> </ds:program>
+            <ds:program name="Filter_protein_molecules"> </ds:program>
+            <ds:controller source="input_string" target="SplitOn_protein_molecule.string" />
+            <ds:controller source="FilterTrueProteinByUniProtID.true_protein" target="Filter2.stringlist" />
+            <ds:controller source="FilterTrueProteinByUniProtID.true_uniprot" target="Filter1.stringlist" />
+            <ds:controller source="Filter_protein_molecules.filteredlist" target="Remove_duplicate_strings.stringlist" />
+            <ds:controller source="Remove_duplicate_strings.strippedlist" target="Strip_xml.tagged_term" />
+            <ds:controller source="SplitOn_protein_molecule.split" target="Filter_protein_molecules.stringlist" />
+            <ds:controller source="Strip_xml.term" target="FilterTrueProteinByUniProtID.protein" />
+            <ds:controller source="Strip_xml.term" target="getUniprotID.term" />
+            <ds:controller source="UniProtOrNot.uniprotID_or_False" target="FilterTrueProteinByUniProtID.uniprot" />   
+            <ds:controller source="filter_protein_molecule_regexp.value" target="Filter_protein_molecules.regex" />
+            <ds:controller source="getUniprotID.getUniprotIDReturn" target="UniProtOrNot.uniprotIDlist" />
+            <ds:controller source="splitOn_protein_molecule_regexp.value" target="SplitOn_protein_molecule.regex" />
+            <ds:controller source="Filter1.filteredlist" target="uniprotID" />
+            <ds:controller source="Filter2.filteredlist" target="protein_molecule" />
+            <ds:inport name="input_string" />
+            <ds:outport name="protein_molecule"/>
+            <ds:outport name="uniprotID"/>
+            </ds:weprov>
+        </ds:workflow>
+        </ds:program>
+        <ds:controller source="documents_from_lucene" target="Discover_entities.input_from_lucene" />
+            <ds:controller source="Discover_entities.discovered_entities" target="Extract_proteins.input_string" />
+            <ds:controller source="Extract_proteins.protein_molecule" target="discovered_proteins" />
+            <ds:controller source="Extract_proteins.uniprotID" target="discovered_uniprot_ids" />
+            <ds:controller source="prelearned_genomics_model.value" target="Discover_entities.learned_model" />
+            <ds:inport name="documents_from_lucene" />
+            <ds:outport name="discovered_proteins" />
+            <ds:outport name="discovered_uniprot_ids"/>
+        </ds:weprov>
+        </ds:workflow>
+    </ds:program>
+    <ds:program name="Link_proteins_to_diseases">
+        <ds:description> This is a special program that itself is a workflow </ds:description>
+        <ds:workflow>
+            <ds:weprov version="0.1">
+            <ds:workflowdescription id="urn:lsid:net.sf.taverna:wfDefinition:4dccdaac-5994-4350-b30b-28eac86c229a" author="workflow author" title="Link_protein_to_OMIM_disease"> This is a sub workflow in the program
+            </ds:workflowdescription>
+            <ds:program name="search"> </ds:program>
+            <ds:program name="label_OMIM_disease"> </ds:program>
+            <ds:program name="Extract_diseases_from_OMIM"> </ds:program>
+            <ds:program name="filter_disease_regexp"> </ds:program>
+            <ds:program name="Remove_duplicate_strings"> </ds:program>
+            <ds:program name="split_OMIM_regexp"> </ds:program>
+            <ds:program name="Split_OMIM_results"> </ds:program>
+            <ds:program name="Flatten_list"> </ds:program>
+            <ds:controller source="keyword" target="search.keyword" />
+            <ds:controller source="Extract_diseases_from_OMIM.filteredlist" target="label_OMIM_disease.OMIM_disease_string" />
+            <ds:controller source="Flatten_list.outputlist" target="Remove_duplicate_strings.stringlist" />
+            <ds:controller source="Remove_duplicate_strings.strippedlist" target="OMIM_disease_label" />
+            <ds:controller source="Split_OMIM_results.split" target="Extract_diseases_from_OMIM.stringlist" />
+            <ds:controller source="filter_disease_regexp.value" target="Extract_diseases_from_OMIM.regex" />
+            <ds:controller source="label_OMIM_disease.OMIM_disease_label" target="Flatten_list.inputlist" />
+            <ds:controller source="search.Result" target="Split_OMIM_results.string" />
+            <ds:controller source="split_OMIM_regexp.value" target="Split_OMIM_results.regex" />
+            <ds:inport name="keyword" />
+            <ds:outport name="OMIM_disease_label"/>
+        </ds:weprov>
+        </ds:workflow>
+    </ds:program>
+    <ds:program name="Flatten_and_make_unique">
+        <ds:description> This is a special program that itself is a workflow </ds:description>
+        <ds:workflow>
+            <ds:weprov version="0.1">
+            <ds:workflowdescription id="urn:lsid:net.sf.taverna:wfDefinition:f43db36c-a3ed-4f78-8d1c-89f27dfb53f7" author="workflow author" title="Flatten_and_make_unique"> This is a sub workflow in the program
+            </ds:workflowdescription>
+            <ds:program name="Remove_duplicate_strings"> </ds:program>
+            <ds:program name="Flatten_list"> </ds:program>
+            <ds:controller source="input" target="Flatten_list.inputlist" />
+            <ds:controller source="Flatten_list.outputlist" target="Remove_duplicate_strings.stringlist" />
+            <ds:controller source="Remove_duplicate_strings.strippedlist" target="flattened_unique_output" />
+            <ds:inport name="input" />
+            <ds:outport name="flattened_unique_output"/>
+        </ds:weprov>
+        </ds:workflow>
+    </ds:program>
+    <ds:controller source="maxNumberOfDocsToRetrieve" target="Retrieve_documents.maxHits" />
+    <ds:controller source="query_string" target="Retrieve_documents.query_string" />
+    <ds:controller source="Discover_RatHumanMouseUniProt_proteins.discovered_proteins" target="CountProteins.list" />
+    <ds:controller source="Discover_RatHumanMouseUniProt_proteins.discovered_proteins" target="Link_proteins_to_diseases.keyword" />
+    <ds:controller source="Document_index.value" target="Retrieve_documents.document_index" />
+    <ds:controller source="Flatten_and_make_unique.flattened_unique_output" target="CountDiseases.list" />
+    <ds:controller source="Link_proteins_to_diseases.OMIM_disease_label" target="CountDiseasesPerProtein.list" />
+    <ds:controller source="Link_proteins_to_diseases.OMIM_disease_label" target="Flatten_and_make_unique.input" />
+    <ds:controller source="CountDiseasesPerProtein.count" target="disease_count_per_protein" />
+    <ds:controller source="CountProteins.count" target="protein_count" />
+    <ds:controller source="Discover_RatHumanMouseUniProt_proteins.discovered_proteins" target="discovered_proteins" />
+    <ds:controller source="Discover_RatHumanMouseUniProt_proteins.discovered_uniprot_ids" target="discovered_uniprot_ids" />
+    <ds:controller source="Flatten_and_make_unique.flattened_unique_output" target="discovered_diseases" />
+    <ds:controller source="Link_proteins_to_diseases.OMIM_disease_label" target="diseases_per_protein" />
+    <ds:controller source="Retrieve_documents.relevant_documents" target="Discover_RatHumanMouseUniProt_proteins.documents_from_lucene" />
+    <ds:controller source="Retrieve_documents.relevant_documents" target="relevant_documents" />
+    <ds:controller source="search_field.value" target="Retrieve_documents.search_field" />
+    <ds:controller source="CountDiseases.count" target="disease_count" />
+    <ds:inport name="query_string"/>
+    <ds:inport name="maxNumberOfDocsToRetrieve" />
+    <ds:outport name="relevant_documents"/>
+    <ds:outport name="discovered_proteins"/>
+    <ds:outport name="discovered_diseases"/>
+    <ds:outport name="diseases_per_protein"/>
+    <ds:outport name="protein_count"/>
+    <ds:outport name="disease_count_per_protein"/>
+    <ds:outport name="discovered_uniprot_ids"/>
+    <ds:outport name="disease_count"/>
+</ds:weprov>

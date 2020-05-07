@@ -11,7 +11,7 @@ public class WeProvOnt {
 	public static final String foaf = "http://xmlns.com/foaf/0.1/";
 	public static final String dcterms="http://purl.org/dc/terms/";
 	
-	//Class declaration
+	//Class declaration 
 		
 		  public static final String Agent =  prov + "Agent" ;
 		  public static final String Activity =  prov+"Activity" ;
@@ -79,6 +79,7 @@ public class WeProvOnt {
 		public static final String  agent =  prov+"agent" ;
 		public static final String  entity =  prov+"entity" ;
 		public static final String  activity =  prov+"activity" ;
+		public static final String  generated =  prov+"generated" ;
 					
 		// Properties
 		public static final String  workflowId =  weprov+"workflowId" ;

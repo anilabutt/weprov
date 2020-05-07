@@ -1,9 +1,0 @@
-{
-  "workflowId": "abc",
-  "programs": [
-    {
-      "programId":"prog_abc",
-    }
-    ],
-
-}

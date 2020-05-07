@@ -1,94 +1,133 @@
 
-import java.io.File;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.json.JSONException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import com.csiro.dataset.TavernaCreationProvenance;
-import com.csiro.dataset.TavernaWorkflowProvenance;
-import com.csiro.dataset.WorkflowComparison;
-import com.csiro.dataset.WorkflowProvenance;
+import com.csiro.webservices.Listeners.WorkflowComparison;
+import com.csiro.webservices.Listeners.WorkflowCrProv;
+import com.csiro.webservices.Listeners.WorkflowSpecProv;
 import com.csiro.webservices.app.beans.ControllerBean;
-import com.csiro.webservices.app.beans.ControllerConnection;
-import com.csiro.webservices.app.beans.PortBean;
 import com.csiro.webservices.app.beans.ProgramBean;
 import com.csiro.webservices.app.beans.Workflow;
+import com.csiro.webservices.mappings.RdfToWorkflow;
+import com.csiro.webservices.mappings.XmlToWorkflow;
+import com.csiro.webservices.rest.GenericService;
 import com.csiro.webservices.store.QuadStore;
-import com.csiro.webservices.store.WeProvOnt;
-import com.hp.hpl.jena.graph.Triple;
+import com.hp.hpl.jena.query.QuerySolution;
+import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 
-import virtuoso.jena.driver.VirtGraph;
-import virtuoso.jena.driver.VirtModel;
 
+public class XmlParser extends GenericService{
 
-public class XmlParser {
+	public XmlParser(String loggerName) {
+		super(loggerName);
+		// TODO Auto-generated constructor stub
+	}
+
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		try {
 			
-			String file = "sample_workflow.txt";
+			String file = "workflow-v1.xml";
 			
-			Workflow workflow =getWorkflow(file, "");
-		     //String inputFilePath = "C:\\Users\\but21c\\eclipse-workspace\\weprov\\src\\taverna_workflow.txt";
-		     //String inputFilePath2 = "C:\\Users\\but21c\\eclipse-workspace\\weprov\\src\\taverna_workflow2.txt";
+			//get workflow data from xml file
+			XmlToWorkflow xmltoworkflow = new XmlToWorkflow();
+			Workflow workflow = xmltoworkflow.getWorkflow(file);			
+			//printThisWorkflow(workflow);
+			
+			//Generate Specification Provenance
+			WorkflowSpecProv prov = new WorkflowSpecProv();			
+			Model specModel = prov.generateSpecificationRDF(workflow, null);
+			
+			//get workflow Id
+			String thisWorkflowId = workflow.getWorkflowId();
+			
+			thisWorkflowId = "http://weprov.csiro.au/workflow/" +thisWorkflowId;
+			//System.out.println("thisWorkflowId : " + thisWorkflowId);
+			
+			//Retrieve previous version of this workflow
+			Model rel_model = getWorkflowModel(thisWorkflowId);
+			//rel_model.write(System.out, "TTL"); 
+			
+			//If previous version does not exist then this is a new workflow 
+			if(rel_model.isEmpty()==true) {
+				System.out.println("This workflow does not exist");
+				
+				//Store Specification Provenance into virtuoso database. 
+				  QuadStore.getDefaultStore().insertSpecs(specModel);
+				 
+				 //Generate Generation Provenance
+			     Model creationModel = getWorkflowCreationProvenance(workflow);
+			     QuadStore.getDefaultStore().insertEvol(creationModel);	 
+				
+			} else {
+				System.out.println("This workflow already exist");
+				//rel_model.write(System.out, "TTL"); 
+				//printThisWorkflow(workflow);
+				
+				RdfToWorkflow rdftoworkflow = new RdfToWorkflow();
+				Workflow w = rdftoworkflow.getWorkflowfromRdf(rel_model, thisWorkflowId);
+				
+				String revId = getRevisionId(thisWorkflowId)+"";     
+				
+				WorkflowComparison cm = new WorkflowComparison();	
+				Model comparison_model = cm.getRevisionProvenance(workflow, w, revId);
+				
+				System.out.println("Is this model empty? " + comparison_model.size());
+				//comparison_model.write(System.out, "TTL"); 
+				
+				//Add the revision provenance in the database
+				QuadStore.getDefaultStore().insertEvol(comparison_model);	
+								
+				//delete the previous version
+				QuadStore.getDefaultStore().deleteSpecs(rel_model);
+				
+				//Store current specifications into virtuoso database. 
+				QuadStore.getDefaultStore().insertSpecs(specModel);
+			}
+			
+			
 		     
-		      //String filepath = "C:\\Users\\but21c\\Dropbox\\CSIRO_Postdoc\\CSIRO_Papers\\EvolutionModelling\\dataset\\workflow1\\workflow\\_deprecated__Probabilistic_Model_Checking__PMC___compute_results-v1.xml";
-
-		    // Workflow workflow1 = getWorkflow(inputFilePath, "2");
-		     //Workflow workflow2 = getWorkflow(inputFilePath2, "1");
-		     
-		   //  printThisWorkflow(workflow);
-		     
-		     
-		    // Workflow workflow = getWorkflow(filepath, "1");
-		    // System.out.println(workflow1.getWorkflowId());
-		     //System.out.println(workflow2.getWorkflowId());
-		     
-		    /*** WorkflowComparison cm = new WorkflowComparison();	     
-		     
-		     Model model = cm.getRevisionProvenance(workflow1, workflow2);
+		     /*** Model model = cm.getRevisionProvenance(workflow1, workflow2);
 		     model.write(System.out, "TTL"); ***/
 		     
-		     //cm.compareWorkflow(workflow1, workflow2);
-		    // cm._model.write(System.out, "TTL"); 
+			//String workflowId = "http://weprov.csiro.au/workflow/urn:lsid:net.sf.taverna:wfDefinition:618ac202-acf6-4695-bdc6-ca0078be3649";
+
+			//System.out.println(workflowId);
+			
+			/*Model _model = getWorkflowModel(workflowId);
+			//_model.write(System.out, "TTL"); 
+						
+
 		     
 		     //System.out.println();
 		     
 		     //getSpecProvenance
 		     
-			List<Triple> specTripleList = getWorkflowSpecificationProvenance(workflow);
+			/*List<Triple> specTripleList = getWorkflowSpecificationProvenance(workflow);
 		    System.out.println(specTripleList.size());   
-			QuadStore.getDefaultStore().insertSpecs(specTripleList);
+			QuadStore.getDefaultStore().insertSpecs(specTripleList);*/
 			
-			TavernaWorkflowProvenance prov = new TavernaWorkflowProvenance();
 			
-			Model model = prov.generateSpecificationRDF(workflow, null);
 		      
 			//VirtGraph vgraph = new VirtGraph();
-			VirtModel vmodel = VirtModel.openDatabaseModel("http://weprov.csiro.au/","jdbc:virtuoso://localhost:1111", "dba", "dba" );
+			//VirtModel vmodel = VirtModel.openDatabaseModel("http://weprov.csiro.au/","jdbc:virtuoso://localhost:1111", "dba", "dba" );
+			//vmodel.add(model);			
+			//vmodel.close();
 			
-			vmodel.add(model);
 			
-			vmodel.close();
 			
 			// specModel.list
 		     //getCreationProvenance
 		     
-		       // Model model = getWorkflowCreationProvenance(workflow);
-		     	 // model.write(System.out, "TTL"); 
+
 		    
 		     
 		     //getWorkflowRevisionProvenance
@@ -101,239 +140,11 @@ public class XmlParser {
 			         e.printStackTrace();
 			}
 	}
-	
-	
-	public static Workflow getWorkflow(String filepath, String revision) {
-		
-		Workflow workflow = new Workflow();
-		// TODO Auto-generated method stub
-		try {
-		     File inputFile = new File(filepath);
-		     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		     DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-		     Document document = dBuilder.parse(inputFile);
-		     document.getDocumentElement().normalize();
-		
-		     //System.out.println(" documentElement :  " + document.getDocumentElement());
-		     
-		     org.w3c.dom.Node baseNode = document.getDocumentElement();     
-		     
-		     workflow = getComponentsOfThisWorkflow(baseNode,"", revision);
-		     
-		     
-			} catch (Exception e) {
-			         e.printStackTrace();
-			} finally {
-				return workflow;
-			}	
-	}
-	
-	public static Workflow getComponentsOfThisWorkflow (Node baseNode, String programName, String revision) throws JSONException {
-	    
-		Workflow workflow = new Workflow();
-		//String id = "";
-		
-		ArrayList<PortBean> inputs = new ArrayList<PortBean>();
-		ArrayList<PortBean> outputs = new ArrayList<PortBean>();
-		ArrayList<ProgramBean> programs= new ArrayList<ProgramBean>();
-		ArrayList<ControllerBean> controllers=new ArrayList<ControllerBean>();
 
-		/* I was trying to print the name of processor that contains this workflow
-		 * 
-		 * if(baseNode.getParentNode().getParentNode() != null) {
-			System.out.println(" Details of the Workflow : " + baseNode.getParentNode().getParentNode().getAttributes().getNamedItem("name")); }
-		 *	
-		 */
-		
-		/************
-		 * Get the immidiate child tags of this workflow. 
-		 * getChildNodes() returns workflow details, its inputs and outputs, involved processes and their links with each others. 
-		 *  
-		 ************/
-		
-		NodeList firstNodeList = baseNode.getChildNodes(); 
-		String version= "";
-	
-		/*if(	hasAttribute(baseNode, "version") ) { 
-			version = baseNode.getAttributes().getNamedItem("version").getTextContent();
-		}*/
-		
-		//workflow.setVersionId(version);
-		workflow.setRevisionId(revision);
-		
-		//System.out.println("Workflow version: " + version);
-	    
-		//Iterate the list to get different components of this workflow
-		
-	     for (int nodeCount = 0; nodeCount < firstNodeList.getLength(); nodeCount++) { 
-	    	 
-	    	 org.w3c.dom.Node node = firstNodeList.item(nodeCount); 	    	 
-	    	 
-	    	 if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) { 
-	    		 
-	    		 String nodeTag = node.getNodeName(); 	 
-	    		 
-	    		 /************  
-	    		  * Find Workflow Details
-	    		  ************/
-	    		 
-	    		 //System.out.println(node.getAttributes().getLength());
-	    		 
-	    		/* for(int i=0; i<node.getAttributes().getLength(); i++) {
-	    			 //System.out.println(node.getAttributes().item(i));
-	    		 }*/
-	    		 
-	    		 
-	    		 if (nodeTag.contains("description")) {	    			 	    			 
-	    			 String workflowId = node.getAttributes().getNamedItem("id").getTextContent();
-	    			// workflowId = workflowId+"-v"+revision;
-	    			 workflow.setWorkflowId(workflowId);
-	    			 //System.out.println("Workflow Id : " + workflowId);
-	    			 
-	    			 String workflowTitle = node.getAttributes().getNamedItem("title").getTextContent();
-	    			 workflow.setWorkflowTitle(workflowTitle);
-	    			 //System.out.println("Workflow Title : " + workflowTitle);
-	    			 
-	    			 String author = node.getAttributes().getNamedItem("author").getTextContent();
-	    			 workflow.setAuthor(author);
-	    			 //System.out.println("Workflow Author : " + author);
-	    			 
-	    			 String workflowDescription = firstNodeList.item(1).getTextContent();
-	    			 workflow.setWorkflowDescription(workflowDescription);
-	    			 //System.out.println("Workflow Description: " + workflowDescription);
-	    			 
-	    			 
-	    		 }  
-
-	    		 /************ 
-	    		  * Add input(ports) of this workflow
-	    		  ************/
-	    		 
-	    		 if (nodeTag.contains("inport")) {
-	    			 String input = node.getAttributes().getNamedItem("name").getTextContent();
-	    			 PortBean inport = new PortBean();
-	    			 inport.setPortId(input);
-	    			 inputs.add(inport);
-	    			 //System.out.println("inputs:	" + input);
-	    		 } if (nodeTag.contains("outport")) {
-	    			 String output = node.getAttributes().getNamedItem("name").getTextContent();
-	    			 PortBean outport = new PortBean();
-	    			 outport.setPortId(output);
-	    			 outputs.add(outport);
-	    			 //System.out.println("output:	" + output);
-	    		 }
-	    		 	    		    		 
-	    		 /************ 
-	    		  * Add programs of this workflow 
-	    		  ************/
-	    		 
-	    		 if (nodeTag.contains("program")) {
-
-	    			 ProgramBean program = new ProgramBean();
-	    			 String name = node.getAttributes().getNamedItem("name").getTextContent();
-	    			 program.setProgramId(name);
-	    			 //System.out.println("Program name : " + name);
-	    			 
-	    			 Element processorElement = (Element)node;
-	    			 //System.out.println(" childElement :  " + processorElement);
-	    			 
-	    			 org.w3c.dom.NodeList processorChildList = processorElement.getChildNodes();
-	    			 
-	    			 for (int j = 0; j < processorChildList.getLength(); j++) { 		    		    	 
-	    		    	 
-	    				 Node childNode = processorChildList.item(j); 
-	    		    	 
-
-	    				 
-	    		    	 if (childNode.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) { 
-	    		    		 
-	    		    		 String childNodeTag = childNode.getNodeName();
-	    		    		 
-	    		    		 //String newName = tab + name;
-	    		    		 if(childNodeTag.equalsIgnoreCase("ds:workflow")) {
-	    		    			program.setType("workflow");
-	    		    			 //System.out.println(newName);	    		    			 
-	    		    			NodeList child = childNode.getChildNodes();	    		    			
-	    		    			
-	    		    			for (int k=0; k < child.getLength(); k++) {
-	    		    				
-	    		    				if(child.item(k).getNodeName().contains("weprov") ) { 
-	    		    					Workflow processWorkflow = getComponentsOfThisWorkflow(child.item(k), name, revision); 
-	    		    					program.setWorkflow(processWorkflow);
-	    		    				}
-	    		    			}
-	    		    		 } 
-	    		    	}
-	    			 }
-	    			 programs.add(program);
-	    		 }
-	    		 
-	    		 /************ 
-	    		  * Add links of this workflow 
-	    		  ************/
-	    		 if (nodeTag.contains("controller")) {
-	    			 String source = node.getAttributes().getNamedItem("source").getTextContent();
-	    			 String sink = node.getAttributes().getNamedItem("target").getTextContent();
-	    			 
-	    			 ControllerBean controller = new ControllerBean();
-	    			 ControllerConnection linkSource = new ControllerConnection();	
-	    			 ControllerConnection linkSink = new ControllerConnection();	
-	    			 
-	    			// System.out.println("Links:	" );
-	    			 
-	    			if(source.contains(":")) {
-	    				String process = source.split(":")[0];
-	    				String output = source.split(":")[1];	    				
-	    				    				
-	    				linkSource.setProgramId(process);
-	    				linkSource.setPortId(output);	    				
-	    				//System.out.println( process + "	---> " + output);
-	    			} else {
-	    				linkSource.setProgramId("");
-	    				linkSource.setPortId(source);
-	    				//System.out.println( "	---> " + source);
-	    			} 
-	    			 
-	    			if(sink.contains(":")) {
-		    			String process = sink.split(":")[0];
-		    			String input = sink.split(":")[1];		    				
-		    					    				
-		    			linkSink.setProgramId(process);
-		    			linkSink.setPortId(input);
-		    			//System.out.println( process + "	---> " + input);
-		    		} else {
-	    				linkSink.setProgramId("");
-	    				linkSink.setPortId(sink);
-		    			//System.out.println( "	---> " + sink);
-		    		}
-	    			controller.setSource(linkSource);
-	    			controller.setTarget(linkSink);
-	    			
-	    			controllers.add(controller);
-	    		 } 
-	    		 
-	    	 }
-	     }
-	     
-    	 workflow.setInports(inputs);
-		 workflow.setOutports(outputs);
-		 workflow.setPrograms(programs);
-		 workflow.setControllers(controllers);			
-
-		 return workflow;
-	}
-	
-	public static List<Triple> getWorkflowSpecificationProvenance (Workflow workflow) throws JSONException {
-				
-		WorkflowProvenance prov = new WorkflowProvenance();
-		List<Triple> triples = prov.generateSpecificationRDF(workflow, null);	
-		
-		return triples;
-	}
 	
 	public static Model getWorkflowCreationProvenance (Workflow workflow) throws JSONException {
 		
-		TavernaCreationProvenance cp = new TavernaCreationProvenance();
+		WorkflowCrProv cp = new WorkflowCrProv();
 		 HashMap<String, String> partOfRel = new HashMap<String, String>();
 		 ArrayList<String> subWorkflowList = new ArrayList<String>();
 		 //model.write(System.out, "TTL");
@@ -356,20 +167,9 @@ public class XmlParser {
 			 }
 		 }
 		 
-		_model.add(cp.generateCreationRDF(workflow.getWorkflowId(), workflow.getAuthor(), subWorkflowList, workflow.getRevisionId()));
+		_model.add(cp.generateCreationRDF(workflow.getWorkflowId(), workflow.getAuthor(), subWorkflowList ));
 		 
 		 return _model;
-	}
-	
-	public static Model getWorkflowRevisionProvenance (Workflow cWf, Workflow pWf ) throws JSONException {
-
-		
-		WorkflowComparison cm = new WorkflowComparison();
-		cm.compareWorkflow(cWf, pWf);
-		
-		Model model = ModelFactory.createDefaultModel();
-		 	 
-		return model;
 	}
 	
 	
@@ -398,27 +198,22 @@ public class XmlParser {
 				 printThisWorkflow(program.getWorkflow());
 			 }
 		 }
-		 		 		
-		/*String sparql = "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>"+
-				"PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
-		        "PREFIX owl:<http://www.w3.org/2002/07/owl#>"+
-		        "PREFIX weprov:<http://www.csiro.au/digiscape/weprov#>"+
-		        //"PREFIX weprov:<http://weprov.csiro.au/>"+
-		        "PREFIX provone:<http://purl.dataone.org/provone/2015/01/15/ontology#>"+
-				"PREFIX prov:<http://www.w3.org/ns/prov#>"+
-
-				"SELECT * "
-				+ "WHERE { "
-				+ "?o weprov:hasController ?v"
-				+ "}";
-
-	
-		QueryExecution qexec = QueryExecutionFactory.create(sparql,Syntax.syntaxSPARQL_11, model);
-		ResultSet results = qexec.execSelect();
-		ResultSetFormatter.out(System.out, results);*/
 		
 	}
 	
+	public static int getRevisionId(String thisWorkflowId) {
+		int revisionId = 0;
+		ResultSet rs = getRevisionCount(thisWorkflowId);
+		
+        if(rs.hasNext()) {
+        	QuerySolution qs= rs.next();
+        	String prevRevisionId = qs.getLiteral("rev").toString(); 
+			revisionId = Integer.parseInt(prevRevisionId);
+		}         
+        revisionId++;
+        		
+        return revisionId; 
+	}
 	
 	public static boolean hasAttribute(Node element, String value) {
 	    NamedNodeMap attributes = element.getAttributes();
